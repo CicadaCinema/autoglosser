@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  chicago: ^0.3.0-dev
 
 dev_dependencies:
   flutter_test:
@@ -18,4 +19,4 @@ dev_dependencies:
   flutter_lints: ^2.0.0
 
 flutter:
-  uses-material-design: true
+  uses-material-design: false
