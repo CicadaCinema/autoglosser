@@ -15,7 +15,7 @@ class MappingDisplay extends ConsumerStatefulWidget {
 }
 
 class _MappingDisplayState extends ConsumerState<MappingDisplay> {
-  bool _textFieldsVisible = false;
+  late bool _textFieldsVisible;
   final _pronounciationController = TextEditingController();
   final _sourceController = TextEditingController();
   final _translationController = TextEditingController();
@@ -38,6 +38,9 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
     _translationController.addListener(() {
       widget.mapping.translation = _translationController.text.split(';');
     });
+
+    // Sometimes this mapping may be selected upon creation.
+    _textFieldsVisible = ref.read(selectedMappingProvider) == widget.mapping;
   }
 
   @override
@@ -51,6 +54,7 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
   @override
   Widget build(BuildContext context) {
     // Listen for changes to the currently selected mapping.
+    // TODO: if increased rebuilds are not an issue, we can just use ref.watch, using it to set a local variable _textFieldsVisible inside this build method. The alternative we are using now is to ref.read to obtain the initial value, then ref.listen to call a custom function and decide manually to only rebuild when the selection status changes.
     ref.listen<Mapping?>(selectedMappingProvider,
         (Mapping? prev, Mapping? next) {
       final previouslySelected = widget.mapping == prev;
@@ -121,35 +125,87 @@ class MapDisplay extends StatefulWidget {
 }
 
 class _MapDisplayState extends State<MapDisplay> {
-  // The SizedBox widgets add extra padding at the top and bottom of the list.
-  late final _sectionDisplayWidgets = [
-    const SizedBox(height: 50),
-    ...widget.map.mappingSections.entries
-        .map((s) => [
-              // Name of this section.
-              Text(
-                s.key,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              // The mappings in this section.
-              ...s.value.map((m) => MappingDisplay(mapping: m)),
-            ])
-        // Flatten this list of lists.
-        .expand((i) => i)
-        .toList(),
-    const SizedBox(height: 50),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    // The SizedBox widgets add extra padding at the top and bottom of the list.
+    final sectionDisplayWidgets = [
+      const SizedBox(height: 50),
+      ...widget.map.mappingSections.entries
+          .map((s) => [
+                // Name of this section.
+                Text(
+                  s.key,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                // The mappings in this section.
+                ...s.value
+                    .map((m) => MappingDisplay(key: UniqueKey(), mapping: m)),
+              ])
+          // Flatten this list of lists.
+          .expand((i) => i)
+          .toList(),
+      const SizedBox(height: 50),
+    ];
+
     // Display the sections in a lazy list.
-    return ListView.builder(
-      itemCount: _sectionDisplayWidgets.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: _sectionDisplayWidgets[index],
-        );
-      },
+    return Column(
+      children: [
+        Consumer(
+          builder: (context, ref, child) {
+            return Row(
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    // Add a new mapping and set it as selected.
+                    final newMapping = Mapping(
+                        pronounciation: 'a', source: 'b', translation: ['c']);
+                    setState(() {
+                      widget.map.mappingSections['Default']!.add(newMapping);
+                    });
+                    ref.read(selectedMappingProvider.notifier).set(newMapping);
+                  },
+                  child: const Text('Add mapping to the general section'),
+                ),
+                ElevatedButton(
+                  onPressed: ref.watch(selectedMappingProvider) == null
+                      ? null
+                      : () {
+                          // Retrieve the mapping to remove and remove the selection.
+                          final mappingToRemove =
+                              ref.read(selectedMappingProvider);
+                          ref.read(selectedMappingProvider.notifier).clear();
+
+                          // Find the instance of this mapping and remove it.
+                          // TODO: Eventually remove this self-check and break early instead - there should only be one instance of this mapping in the map.
+                          var instances = 0;
+                          for (final sectionContent
+                              in widget.map.mappingSections.values) {
+                            if (sectionContent.remove(mappingToRemove)) {
+                              instances++;
+                            }
+                          }
+                          assert(instances == 1);
+                          setState(() {
+                            /* One mapping was removed, see above. We do not want to call setState in the body of a loop. */
+                          });
+                        },
+                  child: const Text('Remove selected mapping'),
+                ),
+              ],
+            );
+          },
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: sectionDisplayWidgets.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: sectionDisplayWidgets[index],
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

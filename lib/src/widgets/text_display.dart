@@ -145,21 +145,21 @@ class TextDisplay extends StatefulWidget {
 }
 
 class _TextDisplayState extends State<TextDisplay> {
-  // The SizedBox widgets add extra padding at the top and bottom of the list.
-  late final _chunkDisplayWidgets = [
-    const SizedBox(height: 50),
-    ...widget.text.chunks.map((c) => ChunkDisplay(chunk: c)),
-    const SizedBox(height: 50),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    // The SizedBox widgets add extra padding at the top and bottom of the list.
+    final chunkDisplayWidgets = [
+      const SizedBox(height: 50),
+      ...widget.text.chunks.map((c) => ChunkDisplay(chunk: c)),
+      const SizedBox(height: 50),
+    ];
+
     // Display the chunks in a lazy list.
     return ListView.builder(
-      itemCount: _chunkDisplayWidgets.length,
+      itemCount: chunkDisplayWidgets.length,
       itemBuilder: (context, index) {
         return ListTile(
-          title: _chunkDisplayWidgets[index],
+          title: chunkDisplayWidgets[index],
         );
       },
     );
