@@ -124,17 +124,19 @@ class _MapDisplayState extends State<MapDisplay> {
   // The SizedBox widgets add extra padding at the top and bottom of the list.
   late final _sectionDisplayWidgets = [
     const SizedBox(height: 50),
-    ...widget.map.mappingSections.entries.map((s) => Column(
-          children: [
-            // Name of this section.
-            Text(
-              s.key,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            // The mappings in this section.
-            ...s.value.map((m) => MappingDisplay(mapping: m)),
-          ],
-        )),
+    ...widget.map.mappingSections.entries
+        .map((s) => [
+              // Name of this section.
+              Text(
+                s.key,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              // The mappings in this section.
+              ...s.value.map((m) => MappingDisplay(mapping: m)),
+            ])
+        // Flatten this list of lists.
+        .expand((i) => i)
+        .toList(),
     const SizedBox(height: 50),
   ];
 
