@@ -2,12 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data_structures.dart';
-
-const _compactDecoration = InputDecoration(
-  isDense: true,
-  contentPadding: EdgeInsets.all(5),
-  border: OutlineInputBorder(),
-);
+import 'common.dart';
 
 /// Displays a source word, its pronounciation and its gloss, allowing the
 /// pronounciation and gloss to be edited while the word is selected.
@@ -82,7 +77,7 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
                   width: 50,
                   child: TextField(
                     controller: _pronounciationController,
-                    decoration: _compactDecoration,
+                    decoration: compactDecoration,
                   ),
                 )
               : Text(widget.word.pronounciation),
@@ -91,7 +86,7 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
                   width: 50,
                   child: TextField(
                     controller: _glossController,
-                    decoration: _compactDecoration,
+                    decoration: compactDecoration,
                   ),
                 )
               : Text(widget.word.gloss),
@@ -156,6 +151,7 @@ class _TextDisplayState extends State<TextDisplay> {
     ...widget.text.chunks.map((c) => ChunkDisplay(chunk: c)),
     const SizedBox(height: 50),
   ];
+
   @override
   Widget build(BuildContext context) {
     // Display the chunks in a lazy list.

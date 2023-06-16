@@ -65,3 +65,45 @@ class SelectedWord extends Notifier<Word?> {
     state = null;
   }
 }
+
+class Mapping {
+  String pronounciation;
+  String source;
+  List<String> translation;
+
+  Mapping({
+    required this.pronounciation,
+    required this.source,
+    required this.translation,
+  });
+}
+
+class FullMap {
+  Map<String, List<Mapping>> mappingSections;
+
+  FullMap({
+    required this.mappingSections,
+  });
+}
+
+/// The currently-selected mapping in Map Mode.
+final selectedMappingProvider =
+    NotifierProvider<SelectedMapping, Mapping?>(SelectedMapping.new);
+
+class SelectedMapping extends Notifier<Mapping?> {
+  @override
+  Mapping? build() {
+    // Set the initial state.
+    return null;
+  }
+
+  /// Set a new mapping as the current selection.
+  void set(Mapping m) {
+    state = m;
+  }
+
+  /// Clear the curently-selected mapping.
+  void clear() {
+    state = null;
+  }
+}
