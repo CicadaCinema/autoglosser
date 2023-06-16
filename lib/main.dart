@@ -30,31 +30,58 @@ void main() {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
+
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp>
+    with SingleTickerProviderStateMixin {
+  static const List<Tab> _tabs = <Tab>[
+    Tab(text: 'Translate'),
+    Tab(text: 'Map'),
+  ];
+
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(vsync: this, length: _tabs.length);
+
+    // Clear selections when switching between tabs.
+    _tabController.addListener(() {
+      ref.read(selectedWordProvider.notifier).clear();
+      ref.read(selectedMappingProvider.notifier).clear();
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          appBar: AppBar(
-            bottom: const TabBar(
-              tabs: [
-                Tab(text: 'Translation'),
-                Tab(text: 'Map'),
-              ],
-            ),
-            // Do not show app bar, only show tabs.
-            toolbarHeight: 0,
+      home: Scaffold(
+        appBar: AppBar(
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: _tabs,
           ),
-          body: TabBarView(
-            children: [
-              TextDisplay(text: sampleText),
-              MapDisplay(map: sampleMapping)
-            ],
-          ),
+          // Do not show app bar, only show tabs.
+          toolbarHeight: 0,
+        ),
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            TextDisplay(text: sampleText),
+            MapDisplay(map: sampleMapping)
+          ],
         ),
       ),
     );
