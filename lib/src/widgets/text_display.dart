@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data_structures.dart' as ag;
 
@@ -9,18 +10,17 @@ const _compactDecoration = InputDecoration(
 );
 
 /// Displays a source word, its pronounciation and its gloss, allowing the
-/// pronounciation and gloss to be edited while hovering the mouse over this
-/// widget.
-class WordDisplay extends StatefulWidget {
+/// pronounciation and gloss to be edited while the word is selected.
+class WordDisplay extends ConsumerStatefulWidget {
   const WordDisplay({super.key, required this.word});
 
   final ag.Word word;
 
   @override
-  State<WordDisplay> createState() => _WordDisplayState();
+  ConsumerState<WordDisplay> createState() => _WordDisplayState();
 }
 
-class _WordDisplayState extends State<WordDisplay> {
+class _WordDisplayState extends ConsumerState<WordDisplay> {
   bool _textFieldsVisible = false;
   final _pronounciationController = TextEditingController();
   final _glossController = TextEditingController();
@@ -50,38 +50,54 @@ class _WordDisplayState extends State<WordDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (event) {
+    // Listen for changes to the currently selected word.
+    ref.listen<ag.Word?>(ag.selectedWordProvider,
+        (ag.Word? prev, ag.Word? next) {
+      final previouslySelected = widget.word == prev;
+      final nowSelected = widget.word == next;
+      // Only rebuild this widget if the selected status of the word has changed.
+      if (previouslySelected != nowSelected) {
         setState(() {
-          _textFieldsVisible = true;
+          // Toggle selected status.
+          _textFieldsVisible = !_textFieldsVisible;
         });
+      }
+    });
+
+    return GestureDetector(
+      onTap: () {
+        // If this word was already selected, clear the selection.
+        if (ref.read(ag.selectedWordProvider) == widget.word) {
+          ref.read(ag.selectedWordProvider.notifier).clear();
+        }
+        // Otherwise, update the currently-selected word.
+        else {
+          ref.read(ag.selectedWordProvider.notifier).set(widget.word);
+        }
       },
-      onExit: (event) {
-        setState(() {
-          _textFieldsVisible = false;
-        });
-      },
-      child: Column(children: [
-        Text(widget.word.source),
-        _textFieldsVisible
-            ? SizedBox(
-                width: 50,
-                child: TextField(
-                  controller: _pronounciationController,
-                  decoration: _compactDecoration,
-                ),
-              )
-            : Text(widget.word.pronounciation),
-        _textFieldsVisible
-            ? SizedBox(
-                width: 50,
-                child: TextField(
-                  controller: _glossController,
-                  decoration: _compactDecoration,
-                ),
-              )
-            : Text(widget.word.gloss),
-      ]),
+      child: Column(
+        children: [
+          Text(widget.word.source),
+          _textFieldsVisible
+              ? SizedBox(
+                  width: 50,
+                  child: TextField(
+                    controller: _pronounciationController,
+                    decoration: _compactDecoration,
+                  ),
+                )
+              : Text(widget.word.pronounciation),
+          _textFieldsVisible
+              ? SizedBox(
+                  width: 50,
+                  child: TextField(
+                    controller: _glossController,
+                    decoration: _compactDecoration,
+                  ),
+                )
+              : Text(widget.word.gloss),
+        ],
+      ),
     );
   }
 }

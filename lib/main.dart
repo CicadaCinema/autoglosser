@@ -1,5 +1,6 @@
 import 'package:autoglosser/src/widgets/text_display.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'src/data_structures.dart' as ag;
 
@@ -9,7 +10,7 @@ final sample = ag.Text.fromString('''知天之所為，知人之所為者，至�
 庸詎知吾所謂天之非人乎？所謂人之非天乎？且有真人，而後有真知。''');
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
