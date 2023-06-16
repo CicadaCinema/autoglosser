@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data_structures.dart' as ag;
+import '../data_structures.dart';
 
 const _compactDecoration = InputDecoration(
   isDense: true,
@@ -14,7 +14,7 @@ const _compactDecoration = InputDecoration(
 class WordDisplay extends ConsumerStatefulWidget {
   const WordDisplay({super.key, required this.word});
 
-  final ag.Word word;
+  final Word word;
 
   @override
   ConsumerState<WordDisplay> createState() => _WordDisplayState();
@@ -51,8 +51,7 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
   @override
   Widget build(BuildContext context) {
     // Listen for changes to the currently selected word.
-    ref.listen<ag.Word?>(ag.selectedWordProvider,
-        (ag.Word? prev, ag.Word? next) {
+    ref.listen<Word?>(selectedWordProvider, (Word? prev, Word? next) {
       final previouslySelected = widget.word == prev;
       final nowSelected = widget.word == next;
       // Only rebuild this widget if the selected status of the word has changed.
@@ -67,12 +66,12 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
     return GestureDetector(
       onTap: () {
         // If this word was already selected, clear the selection.
-        if (ref.read(ag.selectedWordProvider) == widget.word) {
-          ref.read(ag.selectedWordProvider.notifier).clear();
+        if (ref.read(selectedWordProvider) == widget.word) {
+          ref.read(selectedWordProvider.notifier).clear();
         }
         // Otherwise, update the currently-selected word.
         else {
-          ref.read(ag.selectedWordProvider.notifier).set(widget.word);
+          ref.read(selectedWordProvider.notifier).set(widget.word);
         }
       },
       child: Column(
@@ -105,7 +104,7 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
 class LineDisplay extends StatefulWidget {
   const LineDisplay({super.key, required this.line});
 
-  final ag.Line line;
+  final Line line;
 
   @override
   State<LineDisplay> createState() => _LineDisplayState();
@@ -123,7 +122,7 @@ class _LineDisplayState extends State<LineDisplay> {
 class ChunkDisplay extends StatefulWidget {
   const ChunkDisplay({super.key, required this.chunk});
 
-  final ag.Chunk chunk;
+  final Chunk chunk;
 
   @override
   State<ChunkDisplay> createState() => _ChunkDisplayState();
@@ -144,7 +143,7 @@ class _ChunkDisplayState extends State<ChunkDisplay> {
 class TextDisplay extends StatefulWidget {
   const TextDisplay({super.key, required this.text});
 
-  final ag.Text text;
+  final FullText text;
 
   @override
   State<TextDisplay> createState() => _TextDisplayState();

@@ -31,13 +31,13 @@ class Chunk {
   Chunk.fromString(String source) : lines = [Line.fromString(source)];
 }
 
-class Text {
+class FullText {
   List<Chunk> chunks;
 
-  Text({required this.chunks});
+  FullText({required this.chunks});
 
   // By default, a source text is delimited by newline characters into chunks.
-  Text.fromString(String source)
+  FullText.fromString(String source)
       : chunks = source
             .split('\n')
             .map((String chunkString) => Chunk.fromString(chunkString))
