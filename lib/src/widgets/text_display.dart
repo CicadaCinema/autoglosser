@@ -135,6 +135,38 @@ class _ChunkDisplayState extends State<ChunkDisplay> {
   }
 }
 
+/// A horizontal scroll container with a visible scroll bar.
+class HorizontalScroll extends StatefulWidget {
+  const HorizontalScroll({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<HorizontalScroll> createState() => _HorizontalScrollState();
+}
+
+class _HorizontalScrollState extends State<HorizontalScroll> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scrollbar(
+      controller: _scrollController,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 class TextDisplay extends StatefulWidget {
   const TextDisplay({super.key, required this.text});
 
@@ -155,13 +187,25 @@ class _TextDisplayState extends State<TextDisplay> {
     ];
 
     // Display the chunks in a lazy list.
-    return ListView.builder(
-      itemCount: chunkDisplayWidgets.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: chunkDisplayWidgets[index],
-        );
-      },
+    return Row(
+      children: [
+        ElevatedButton(
+          child: const Text('Autogloss'),
+          onPressed: () {
+            print('TODO');
+          },
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: chunkDisplayWidgets.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: HorizontalScroll(child: chunkDisplayWidgets[index]),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
