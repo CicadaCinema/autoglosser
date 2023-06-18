@@ -175,18 +175,10 @@ class _MapDisplayState extends State<MapDisplay> {
                               ref.read(selectedMappingProvider);
                           ref.read(selectedMappingProvider.notifier).clear();
 
-                          // Find the instance of this mapping and remove it.
-                          // TODO: Eventually remove this self-check and break early instead - there should only be one instance of this mapping in the map.
-                          var instances = 0;
-                          for (final sectionContent
-                              in widget.map.mappingSections.values) {
-                            if (sectionContent.remove(mappingToRemove)) {
-                              instances++;
-                            }
-                          }
-                          assert(instances == 1);
+                          // Unlink this mapping from the linked list.
+                          // The condition `ref.watch(selectedMappingProvider) == null` above serves as a null check.
                           setState(() {
-                            /* One mapping was removed, see above. We do not want to call setState in the body of a loop. */
+                            mappingToRemove!.unlink();
                           });
                         },
                   child: const Text('Remove selected mapping'),

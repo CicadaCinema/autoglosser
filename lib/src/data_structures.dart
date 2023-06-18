@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class Word {
@@ -66,7 +68,7 @@ class SelectedWord extends Notifier<Word?> {
   }
 }
 
-class Mapping {
+final class Mapping extends LinkedListEntry<Mapping> {
   String pronounciation;
   String source;
   List<String> translation;
@@ -79,7 +81,7 @@ class Mapping {
 }
 
 class FullMap {
-  Map<String, List<Mapping>> mappingSections;
+  Map<String, LinkedList<Mapping>> mappingSections;
 
   FullMap({
     required this.mappingSections,
