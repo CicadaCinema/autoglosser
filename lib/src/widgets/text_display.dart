@@ -167,16 +167,16 @@ class _HorizontalScrollState extends State<HorizontalScroll> {
   }
 }
 
-class TextDisplay extends StatefulWidget {
+class TextDisplay extends ConsumerStatefulWidget {
   const TextDisplay({super.key, required this.text});
 
   final FullText text;
 
   @override
-  State<TextDisplay> createState() => _TextDisplayState();
+  ConsumerState<TextDisplay> createState() => _TextDisplayState();
 }
 
-class _TextDisplayState extends State<TextDisplay> {
+class _TextDisplayState extends ConsumerState<TextDisplay> {
   @override
   Widget build(BuildContext context) {
     // The SizedBox widgets add extra padding at the top and bottom of the list.
@@ -192,7 +192,9 @@ class _TextDisplayState extends State<TextDisplay> {
         ElevatedButton(
           child: const Text('Autogloss'),
           onPressed: () {
-            print('TODO');
+            // FIXME: remove this and actually implement autoglossing
+            final selected = ref.read(selectedWordProvider);
+            ref.read(selectedWordProvider.notifier).set(selected!.next!);
           },
         ),
         Expanded(

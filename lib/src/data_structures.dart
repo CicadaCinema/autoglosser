@@ -2,7 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Word {
+final class Word extends LinkedListEntry<Word> {
   String source;
   String pronounciation = '-';
   String gloss = '-';
@@ -11,16 +11,16 @@ class Word {
 }
 
 class Line {
-  List<Word> words;
+  LinkedList<Word> words;
 
   Line({required this.words});
 
   // By default, a line is split by character into words.
-  Line.fromString(String source)
-      : words = source
-            .split('')
-            .map((String characterString) => Word(source: characterString))
-            .toList();
+  Line.fromString(String source) : words = LinkedList() {
+    words.addAll(source
+        .split('')
+        .map((String characterString) => Word(source: characterString)));
+  }
 }
 
 class Chunk {

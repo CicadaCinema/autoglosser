@@ -103,8 +103,8 @@ final sampleText =
 故千乘之國行文德者王，萬乘之國好用兵者亡，王兵先勝而後戰，敗兵先戰而後求勝，此不明於道也。''');
 
 final sampleMapping = FullMap(mappingSections: {
-  'Default': LinkedList<Mapping>(),
-  'Extra': LinkedList<Mapping>(),
+  'Default': LinkedList(),
+  'Extra': LinkedList(),
 });
 
 void main() {
