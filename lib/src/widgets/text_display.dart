@@ -184,96 +184,102 @@ class _TextDisplayState extends State<TextDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    // The SizedBox widgets add extra padding at the top and bottom of the list.
-    final chunkDisplayWidgets = [
-      const SizedBox(height: 50),
-      ...widget.text.chunks.map((c) => ChunkDisplay(chunk: c)),
-      const SizedBox(height: 50),
-    ];
+    final chunkDisplayWidgets =
+        widget.text.chunks.map((c) => ChunkDisplay(chunk: c)).toList();
 
     // Display the chunks in a lazy list.
-    return Row(
-      children: [
-        Consumer(
-          builder: (context, ref, child) {
-            // Ensure autoglossing is enabled and a word is selected and this word isn't the last one in its line, before presenting options to the user.
-            // TODO: reorganise data strunctures once again to enable autoglossing across lines and chunks.
-            final canAutogloss = _autoglossEnabled &&
-                ref.watch(selectedWordProvider) != null &&
-                ref.watch(selectedWordProvider)!.next != null;
-            return SizedBox(
-              width: 200,
-              child: Column(
-                children: [
-                  SwitchListTile(
-                    title: const Text('Enable autoglossing'),
-                    value: _autoglossEnabled,
-                    onChanged: (bool value) {
-                      // This is called when the user toggles the switch.
-                      setState(() {
-                        _autoglossEnabled = value;
-                      });
-                    },
-                  ),
-                  ...canAutogloss
-                      ? [
-                          ElevatedButton(
-                            child: const Text('Skip word'),
-                            onPressed: () {
-                              // Skip this word and move onto the next.
-                              final selected = ref.read(selectedWordProvider);
-                              ref
-                                  .read(selectedWordProvider.notifier)
-                                  .set(selected!.next!);
-                            },
-                          ),
-                        ]
-                      : [],
-                  ...canAutogloss
-                      // TODO: flatten to have multiple gloss options with multiple meanings
-                      ? widget.map
-                              .souceToMappings(
-                                  ref.watch(selectedWordProvider)!.source)
-                              // Produce an ElevatedButton for each translation within each mapping that matches the source of this word.
-                              ?.map((m) => m.translation
-                                  .map((translation) => ElevatedButton(
-                                        child: Text(
-                                            'Gloss with\n${m.pronounciation}\n$translation'),
-                                        onPressed: () {
-                                          // Move onto the next word, as below.
-                                          final selected =
-                                              ref.read(selectedWordProvider);
-                                          ref
-                                              .read(
-                                                  selectedWordProvider.notifier)
-                                              .set(selected!.next!);
-                                          // Set the pronounciation and translation.
-                                          selected.pronounciation =
-                                              m.pronounciation;
-                                          selected.gloss = translation;
-                                        },
-                                      )))
-                              // Flatten this list of lists.
-                              .expand((i) => i)
-                              .toList() ??
-                          []
-                      : [],
-                ],
-              ),
-            );
-          },
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: chunkDisplayWidgets.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: HorizontalScroll(child: chunkDisplayWidgets[index]),
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Consumer(
+            builder: (context, ref, child) {
+              // Ensure autoglossing is enabled and a word is selected and this word isn't the last one in its line, before presenting options to the user.
+              // TODO: reorganise data strunctures once again to enable autoglossing across lines and chunks.
+              final canAutogloss = _autoglossEnabled &&
+                  ref.watch(selectedWordProvider) != null &&
+                  ref.watch(selectedWordProvider)!.next != null;
+
+              // Produce an ElevatedButton for each translation within each mapping that matches the source of this word.
+              final glossWidgets = <Widget>[];
+              if (canAutogloss) {
+                for (final Mapping mapping in widget.map.souceToMappings(
+                        ref.watch(selectedWordProvider)!.source) ??
+                    []) {
+                  for (final String translation in mapping.translation) {
+                    glossWidgets.add(const SizedBox(height: 12));
+                    glossWidgets.add(
+                      ElevatedButton(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Text(
+                              'Gloss with\n${mapping.pronounciation}\n$translation'),
+                        ),
+                        onPressed: () {
+                          // Move onto the next word, as below.
+                          final selected = ref.read(selectedWordProvider);
+                          ref
+                              .read(selectedWordProvider.notifier)
+                              .set(selected!.next!);
+                          // Set the pronounciation and translation.
+                          selected.pronounciation = mapping.pronounciation;
+                          selected.gloss = translation;
+                        },
+                      ),
+                    );
+                  }
+                }
+              }
+
+              return SizedBox(
+                width: 200,
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      title: const Text('Enable autoglossing'),
+                      value: _autoglossEnabled,
+                      onChanged: (bool value) {
+                        // This is called when the user toggles the switch.
+                        setState(() {
+                          _autoglossEnabled = value;
+                        });
+                      },
+                    ),
+                    ...canAutogloss
+                        ? [
+                            const SizedBox(
+                              height: 12,
+                            ),
+                            ElevatedButton(
+                              child: const Text('Skip word'),
+                              onPressed: () {
+                                // Skip this word and move onto the next.
+                                final selected = ref.read(selectedWordProvider);
+                                ref
+                                    .read(selectedWordProvider.notifier)
+                                    .set(selected!.next!);
+                              },
+                            ),
+                          ]
+                        : [],
+                    ...canAutogloss ? glossWidgets : [],
+                  ],
+                ),
               );
             },
           ),
-        ),
-      ],
+          Expanded(
+            child: ListView.builder(
+              itemCount: chunkDisplayWidgets.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: HorizontalScroll(child: chunkDisplayWidgets[index]),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

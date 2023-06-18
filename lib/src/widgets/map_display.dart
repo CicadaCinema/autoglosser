@@ -131,76 +131,78 @@ class _MapDisplayState extends State<MapDisplay> {
   @override
   Widget build(BuildContext context) {
     // The SizedBox widgets add extra padding at the top and bottom of the list.
-    final sectionDisplayWidgets = [
-      const SizedBox(height: 50),
-      ...widget.map.mappingSections.entries
-          .map((s) => [
-                // Name of this section.
-                Text(
-                  s.key,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                // The mappings in this section.
-                ...s.value.map((m) => MappingDisplay(
-                    key: UniqueKey(), mapping: m, map: widget.map)),
-              ])
-          // Flatten this list of lists.
-          .expand((i) => i)
-          .toList(),
-      const SizedBox(height: 50),
-    ];
+    final sectionDisplayWidgets = widget.map.mappingSections.entries
+        .map((s) => [
+              // Name of this section.
+              Text(
+                s.key,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              // The mappings in this section.
+              ...s.value.map((m) => MappingDisplay(
+                  key: UniqueKey(), mapping: m, map: widget.map)),
+            ])
+        // Flatten this list of lists.
+        .expand((i) => i)
+        .toList();
 
     // Display the sections in a lazy list.
-    return Column(
-      children: [
-        Consumer(
-          builder: (context, ref, child) {
-            return Row(
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    // Add a new mapping and set it as selected.
-                    final newMapping = Mapping(
-                        pronounciation: 'a', source: 'b', translation: ['c']);
-                    setState(() {
-                      widget.map
-                          .addMapping(mapping: newMapping, section: 'Default');
-                    });
-                    ref.read(selectedMappingProvider.notifier).set(newMapping);
-                  },
-                  child: const Text('Add mapping to the general section'),
-                ),
-                ElevatedButton(
-                  onPressed: ref.watch(selectedMappingProvider) == null
-                      ? null
-                      : () {
-                          // Retrieve the mapping to remove and remove the selection.
-                          final mappingToRemove =
-                              ref.read(selectedMappingProvider);
-                          ref.read(selectedMappingProvider.notifier).clear();
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Consumer(
+            builder: (context, ref, child) {
+              return Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      // Add a new mapping and set it as selected.
+                      final newMapping = Mapping(
+                          pronounciation: 'a', source: 'b', translation: ['c']);
+                      setState(() {
+                        widget.map.addMapping(
+                            mapping: newMapping, section: 'Default');
+                      });
+                      ref
+                          .read(selectedMappingProvider.notifier)
+                          .set(newMapping);
+                    },
+                    child: const Text('Add mapping to the general section'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: ref.watch(selectedMappingProvider) == null
+                        ? null
+                        : () {
+                            // Retrieve the mapping to remove and remove the selection.
+                            final mappingToRemove =
+                                ref.read(selectedMappingProvider);
+                            ref.read(selectedMappingProvider.notifier).clear();
 
-                          // The condition `ref.watch(selectedMappingProvider) == null` above serves as a null check.
-                          setState(() {
-                            widget.map.clearMapping(mappingToRemove!);
-                          });
-                        },
-                  child: const Text('Remove selected mapping'),
-                ),
-              ],
-            );
-          },
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: sectionDisplayWidgets.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: sectionDisplayWidgets[index],
+                            // The condition `ref.watch(selectedMappingProvider) == null` above serves as a null check.
+                            setState(() {
+                              widget.map.clearMapping(mappingToRemove!);
+                            });
+                          },
+                    child: const Text('Remove selected mapping'),
+                  ),
+                ],
               );
             },
           ),
-        ),
-      ],
+          Expanded(
+            child: ListView.builder(
+              itemCount: sectionDisplayWidgets.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: sectionDisplayWidgets[index],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
