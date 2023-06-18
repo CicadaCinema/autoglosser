@@ -23,10 +23,6 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
   @override
   void initState() {
     super.initState();
-    // Initially, set the text field values to the existing pronounciation and gloss strings.
-    _pronounciationController.text = widget.word.pronounciation;
-    _glossController.text = widget.word.gloss;
-
     // Add listeners to update these strings whenever the text field values change.
     _pronounciationController.addListener(() {
       widget.word.pronounciation = _pronounciationController.text;
@@ -51,6 +47,12 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
       final nowSelected = widget.word == next;
       // Only rebuild this widget if the selected status of the word has changed.
       if (previouslySelected != nowSelected) {
+        if (nowSelected) {
+          // If this word is now selected, set the text field values to the existing pronounciation and gloss strings.
+          _pronounciationController.text = widget.word.pronounciation;
+          _glossController.text = widget.word.gloss;
+        }
+
         setState(() {
           // Toggle selected status.
           _textFieldsVisible = !_textFieldsVisible;
@@ -167,16 +169,19 @@ class _HorizontalScrollState extends State<HorizontalScroll> {
   }
 }
 
-class TextDisplay extends ConsumerStatefulWidget {
-  const TextDisplay({super.key, required this.text});
+class TextDisplay extends StatefulWidget {
+  const TextDisplay({super.key, required this.text, required this.map});
 
   final FullText text;
+  final FullMap map;
 
   @override
-  ConsumerState<TextDisplay> createState() => _TextDisplayState();
+  State<TextDisplay> createState() => _TextDisplayState();
 }
 
-class _TextDisplayState extends ConsumerState<TextDisplay> {
+class _TextDisplayState extends State<TextDisplay> {
+  bool _autoglossEnabled = true;
+
   @override
   Widget build(BuildContext context) {
     // The SizedBox widgets add extra padding at the top and bottom of the list.
@@ -189,12 +194,73 @@ class _TextDisplayState extends ConsumerState<TextDisplay> {
     // Display the chunks in a lazy list.
     return Row(
       children: [
-        ElevatedButton(
-          child: const Text('Autogloss'),
-          onPressed: () {
-            // FIXME: remove this and actually implement autoglossing
-            final selected = ref.read(selectedWordProvider);
-            ref.read(selectedWordProvider.notifier).set(selected!.next!);
+        Consumer(
+          builder: (context, ref, child) {
+            // Ensure autoglossing is enabled and a word is selected and this word isn't the last one in its line, before presenting options to the user.
+            // TODO: reorganise data strunctures once again to enable autoglossing across lines and chunks.
+            final canAutogloss = _autoglossEnabled &&
+                ref.watch(selectedWordProvider) != null &&
+                ref.watch(selectedWordProvider)!.next != null;
+            return SizedBox(
+              width: 200,
+              child: Column(
+                children: [
+                  SwitchListTile(
+                    title: const Text('Enable autoglossing'),
+                    value: _autoglossEnabled,
+                    onChanged: (bool value) {
+                      // This is called when the user toggles the switch.
+                      setState(() {
+                        _autoglossEnabled = value;
+                      });
+                    },
+                  ),
+                  ...canAutogloss
+                      ? [
+                          ElevatedButton(
+                            child: const Text('Skip word'),
+                            onPressed: () {
+                              // Skip this word and move onto the next.
+                              final selected = ref.read(selectedWordProvider);
+                              ref
+                                  .read(selectedWordProvider.notifier)
+                                  .set(selected!.next!);
+                            },
+                          ),
+                        ]
+                      : [],
+                  ...canAutogloss
+                      // TODO: flatten to have multiple gloss options with multiple meanings
+                      ? widget.map
+                              .souceToMappings(
+                                  ref.watch(selectedWordProvider)!.source)
+                              // Produce an ElevatedButton for each translation within each mapping that matches the source of this word.
+                              ?.map((m) => m.translation
+                                  .map((translation) => ElevatedButton(
+                                        child: Text(
+                                            'Gloss with\n${m.pronounciation}\n$translation'),
+                                        onPressed: () {
+                                          // Move onto the next word, as below.
+                                          final selected =
+                                              ref.read(selectedWordProvider);
+                                          ref
+                                              .read(
+                                                  selectedWordProvider.notifier)
+                                              .set(selected!.next!);
+                                          // Set the pronounciation and translation.
+                                          selected.pronounciation =
+                                              m.pronounciation;
+                                          selected.gloss = translation;
+                                        },
+                                      )))
+                              // Flatten this list of lists.
+                              .expand((i) => i)
+                              .toList() ??
+                          []
+                      : [],
+                ],
+              ),
+            );
           },
         ),
         Expanded(

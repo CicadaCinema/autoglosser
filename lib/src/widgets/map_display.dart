@@ -6,9 +6,10 @@ import 'common.dart';
 
 /// Displays a mapping, allowing it to be edited while selected.
 class MappingDisplay extends ConsumerStatefulWidget {
-  const MappingDisplay({super.key, required this.mapping});
+  const MappingDisplay({super.key, required this.mapping, required this.map});
 
   final Mapping mapping;
+  final FullMap map;
 
   @override
   ConsumerState<MappingDisplay> createState() => _MappingDisplayState();
@@ -33,7 +34,9 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
       widget.mapping.pronounciation = _pronounciationController.text;
     });
     _sourceController.addListener(() {
-      widget.mapping.source = _sourceController.text;
+      // The source must be updated using the [FullMap] interface.
+      widget.map.updateSource(
+          mapping: widget.mapping, newSource: _sourceController.text);
     });
     _translationController.addListener(() {
       widget.mapping.translation = _translationController.text.split(';');
@@ -138,8 +141,8 @@ class _MapDisplayState extends State<MapDisplay> {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 // The mappings in this section.
-                ...s.value
-                    .map((m) => MappingDisplay(key: UniqueKey(), mapping: m)),
+                ...s.value.map((m) => MappingDisplay(
+                    key: UniqueKey(), mapping: m, map: widget.map)),
               ])
           // Flatten this list of lists.
           .expand((i) => i)
@@ -160,7 +163,8 @@ class _MapDisplayState extends State<MapDisplay> {
                     final newMapping = Mapping(
                         pronounciation: 'a', source: 'b', translation: ['c']);
                     setState(() {
-                      widget.map.mappingSections['Default']!.add(newMapping);
+                      widget.map
+                          .addMapping(mapping: newMapping, section: 'Default');
                     });
                     ref.read(selectedMappingProvider.notifier).set(newMapping);
                   },
@@ -175,10 +179,9 @@ class _MapDisplayState extends State<MapDisplay> {
                               ref.read(selectedMappingProvider);
                           ref.read(selectedMappingProvider.notifier).clear();
 
-                          // Unlink this mapping from the linked list.
                           // The condition `ref.watch(selectedMappingProvider) == null` above serves as a null check.
                           setState(() {
-                            mappingToRemove!.unlink();
+                            widget.map.clearMapping(mappingToRemove!);
                           });
                         },
                   child: const Text('Remove selected mapping'),

@@ -81,11 +81,56 @@ final class Mapping extends LinkedListEntry<Mapping> {
 }
 
 class FullMap {
-  Map<String, LinkedList<Mapping>> mappingSections;
+  // TODO: protect against accidentally modifying this map.
+  /// Maps from the name of a section to a linked list of mappings in that section.
+  final Map<String, LinkedList<Mapping>> mappingSections;
 
-  FullMap({
-    required this.mappingSections,
-  });
+  /// Maps from a source word to the list of mappings associated with that word, across all sections.
+  final Map<String, List<Mapping>> _sourceToMappings;
+
+  List<Mapping>? souceToMappings(String source) => _sourceToMappings[source];
+
+  /// Adds a mapping to the given section.
+  void addMapping({required Mapping mapping, required String section}) {
+    // Update mappingSections.
+    if (!mappingSections.containsKey(section)) {
+      mappingSections[section] = LinkedList();
+    }
+    mappingSections[section]!.add(mapping);
+
+    // Update _sourceToMappings.
+    if (!_sourceToMappings.containsKey(mapping.source)) {
+      _sourceToMappings[mapping.source] = [];
+    }
+    _sourceToMappings[mapping.source]!.add(mapping);
+  }
+
+  /// Clears a mappings from its section.
+  void clearMapping(Mapping mapping) {
+    // There should only be one instance of [mapping] in _sourceToMappings.
+    _sourceToMappings[mapping.source]!.remove(mapping);
+
+    // The mapping already knows which section it's in.
+    mapping.unlink();
+  }
+
+  /// Updates the source text for a mapping. The other fields can be modified in-place without going through this [FullMap] interface.
+  void updateSource({required Mapping mapping, required String newSource}) {
+    // Update _sourceToMappings.
+    _sourceToMappings[mapping.source]!.remove(mapping);
+    if (!_sourceToMappings.containsKey(newSource)) {
+      _sourceToMappings[newSource] = [];
+    }
+    _sourceToMappings[newSource]!.add(mapping);
+
+    // Update the source field.
+    mapping.source = newSource;
+  }
+
+  // Initialise map as empty.
+  FullMap()
+      : mappingSections = {},
+        _sourceToMappings = {};
 }
 
 /// The currently-selected mapping in Map Mode.

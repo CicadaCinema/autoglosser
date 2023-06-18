@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:autoglosser/src/widgets/text_display.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,8 +5,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'src/data_structures.dart';
 import 'src/widgets/map_display.dart';
 
-final sampleText =
-    FullText.fromString('''老子曰：治身，太上養神，其次養形，神清意平，百節皆寧，養生之本也，肥肌膚，充腹腸，供嗜欲，養生之末也。
+void main() {
+  runApp(const ProviderScope(child: MyApp()));
+}
+
+class MyApp extends ConsumerStatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp>
+    with SingleTickerProviderStateMixin {
+  final fullText =
+      FullText.fromString('''老子曰：治身，太上養神，其次養形，神清意平，百節皆寧，養生之本也，肥肌膚，充腹腸，供嗜欲，養生之末也。
 治國，太上養化，其次正法，民交讓爭處卑，財利爭受少，事力爭就勞，日化上而遷善，不知其所以然，治之本也，利賞而勸善，畏刑而不敢為非，法令正於上，百姓服於下，治之末也，上世養本，而下世事末。
 老子曰：欲治之主不世出，可與治之臣不萬一，以不世出求不萬一，此至治所以千歲不一也。
 蓋霸王之功不世立也，順其善意，防其邪心，與民同出一道，則民可善，風俗可美。
@@ -102,24 +113,8 @@ final sampleText =
 善用兵者，先弱敵而後戰，故費不半而功十倍。
 故千乘之國行文德者王，萬乘之國好用兵者亡，王兵先勝而後戰，敗兵先戰而後求勝，此不明於道也。''');
 
-final sampleMapping = FullMap(mappingSections: {
-  'Default': LinkedList(),
-  'Extra': LinkedList(),
-});
+  final fullMap = FullMap();
 
-void main() {
-  runApp(const ProviderScope(child: MyApp()));
-}
-
-class MyApp extends ConsumerStatefulWidget {
-  const MyApp({super.key});
-
-  @override
-  ConsumerState<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends ConsumerState<MyApp>
-    with SingleTickerProviderStateMixin {
   static const List<Tab> _tabs = <Tab>[
     Tab(text: 'Translate'),
     Tab(text: 'Map'),
@@ -139,19 +134,32 @@ class _MyAppState extends ConsumerState<MyApp>
     });
 
     // FIXME: this is an ugly hack, remove these lines to initialise the mapping as empty initially
-    sampleMapping.mappingSections['Default']!.addAll([
-      Mapping(pronounciation: 'aa', source: '老', translation: ['cheese']),
-      Mapping(pronounciation: 'bb', source: '子', translation: ['eggs']),
-      Mapping(pronounciation: 'bbd', source: '窈', translation: ['salmon']),
-      Mapping(
-          pronounciation: 'aada',
-          source: '聲',
-          translation: ['hamburger', 'pizza']),
-    ]);
-    sampleMapping.mappingSections['Extra']!.addAll([
-      Mapping(pronounciation: 'basdb', source: '生', translation: ['sadeggs']),
-      Mapping(pronounciation: 'fsdbbd', source: '生', translation: ['sadmon']),
-    ]);
+    fullMap.addMapping(
+        mapping:
+            Mapping(pronounciation: 'aa', source: '子', translation: ['alpha']),
+        section: 'Default');
+    fullMap.addMapping(
+        mapping: Mapping(
+            pronounciation: 'bb', source: '曰', translation: ['beta', 'beta2']),
+        section: 'Default');
+    fullMap.addMapping(
+        mapping: Mapping(
+            pronounciation: 'cc1', source: '治', translation: ['gamma1']),
+        section: 'Default');
+    fullMap.addMapping(
+        mapping: Mapping(
+            pronounciation: 'cc2',
+            source: '治',
+            translation: ['gamma2', 'gamma3']),
+        section: 'Default');
+    fullMap.addMapping(
+        mapping:
+            Mapping(pronounciation: 'dd', source: '身', translation: ['delta']),
+        section: 'Extra');
+    fullMap.addMapping(
+        mapping: Mapping(
+            pronounciation: 'ee', source: '老', translation: ['epsilon']),
+        section: 'Extra');
   }
 
   @override
@@ -175,8 +183,8 @@ class _MyAppState extends ConsumerState<MyApp>
         body: TabBarView(
           controller: _tabController,
           children: [
-            TextDisplay(text: sampleText),
-            MapDisplay(map: sampleMapping)
+            TextDisplay(text: fullText, map: fullMap),
+            MapDisplay(map: fullMap)
           ],
         ),
       ),
