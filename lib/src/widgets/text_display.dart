@@ -71,29 +71,29 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
           ref.read(selectedWordProvider.notifier).set(widget.word);
         }
       },
-      child: Column(
-        children: [
-          Text(widget.word.source),
-          _textFieldsVisible
-              ? SizedBox(
+      child: _textFieldsVisible
+          ? Column(
+              children: [
+                Text(widget.word.source),
+                SizedBox(
                   width: 50,
                   child: TextField(
                     controller: _pronounciationController,
                     decoration: compactDecoration,
                   ),
-                )
-              : Text(widget.word.pronounciation),
-          _textFieldsVisible
-              ? SizedBox(
+                ),
+                SizedBox(
                   width: 50,
                   child: TextField(
                     controller: _glossController,
                     decoration: compactDecoration,
                   ),
-                )
-              : Text(widget.word.gloss),
-        ],
-      ),
+                ),
+              ],
+            )
+          // The majority of the time we will only need to show just this one widget.
+          : Text(
+              '${widget.word.source}\n${widget.word.pronounciation}\n${widget.word.gloss}'),
     );
   }
 }
