@@ -22,3 +22,17 @@ dev_dependencies:
 
 flutter:
   uses-material-design: false
+  fonts:
+  - family: NotoSansSC
+    fonts:
+      - asset: NotoSansSC-Thin.otf
+        weight: 100
+      - asset: NotoSansSC-Light.otf
+        weight: 300
+      - asset: NotoSansSC-Regular.otf
+      - asset: NotoSansSC-Medium.otf
+        weight: 500
+      - asset: NotoSansSC-Bold.otf
+        weight: 700
+      - asset: NotoSansSC-Black.otf
+        weight: 900
