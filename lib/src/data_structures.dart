@@ -11,39 +11,42 @@ final class Word extends LinkedListEntry<Word> {
 }
 
 class Line {
-  LinkedList<Word> words;
+  List<Word> words;
 
   Line({required this.words});
-
-  // By default, a line is split by character into words.
-  Line.fromString(String source) : words = LinkedList() {
-    words.addAll(source
-        .split('')
-        .map((String characterString) => Word(source: characterString)));
-  }
 }
 
 class Chunk {
   List<Line> lines;
-  String translation = 'Lorem';
+  String translation = 'Lorem.';
 
   Chunk({required this.lines});
-
-  // By default, a chunk contains only one line.
-  Chunk.fromString(String source) : lines = [Line.fromString(source)];
 }
 
 class FullText {
+// All the words comprising the source text.
+  LinkedList<Word> allWords;
   List<Chunk> chunks;
-
-  FullText({required this.chunks});
 
   // By default, a source text is delimited by newline characters into chunks.
   FullText.fromString(String source)
-      : chunks = source
-            .split('\n')
-            .map((String chunkString) => Chunk.fromString(chunkString))
-            .toList();
+      : allWords = LinkedList(),
+        chunks = [] {
+    for (final String chunkString in source.split('\n')) {
+      // A List<Word> of all the words on this line (and so by default, this chunk).
+      final wordsOnThisLine = chunkString
+          .split('')
+          .map((String wordString) => Word(source: wordString))
+          .toList();
+
+      allWords.addAll(wordsOnThisLine);
+
+      final thisLine = Line(words: wordsOnThisLine);
+      // By default, each chunk contains one line.
+      final thisChunk = Chunk(lines: [thisLine]);
+      chunks.add(thisChunk);
+    }
+  }
 }
 
 /// The currently-selected word in Translation Mode.
