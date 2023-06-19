@@ -110,7 +110,7 @@ class LineDisplay extends StatefulWidget {
 class _LineDisplayState extends State<LineDisplay> {
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Wrap(
       children: widget.line.words.map((w) => WordDisplay(word: w)).toList(),
     );
   }
@@ -133,38 +133,6 @@ class _ChunkDisplayState extends State<ChunkDisplay> {
         ...widget.chunk.lines.map((l) => LineDisplay(line: l)),
         Text(widget.chunk.translation),
       ],
-    );
-  }
-}
-
-/// A horizontal scroll container with a visible scroll bar.
-class HorizontalScroll extends StatefulWidget {
-  const HorizontalScroll({super.key, required this.child});
-
-  final Widget child;
-
-  @override
-  State<HorizontalScroll> createState() => _HorizontalScrollState();
-}
-
-class _HorizontalScrollState extends State<HorizontalScroll> {
-  final _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scrollbar(
-      controller: _scrollController,
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        scrollDirection: Axis.horizontal,
-        child: widget.child,
-      ),
     );
   }
 }
@@ -273,7 +241,7 @@ class _TextDisplayState extends State<TextDisplay> {
               itemCount: chunkDisplayWidgets.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: HorizontalScroll(child: chunkDisplayWidgets[index]),
+                  title: chunkDisplayWidgets[index],
                 );
               },
             ),
