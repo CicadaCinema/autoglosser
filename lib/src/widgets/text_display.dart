@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 
 import '../data_structures.dart';
 import 'common.dart';
@@ -101,7 +102,8 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
 class LineDisplay extends StatefulWidget {
   const LineDisplay({super.key, required this.line});
 
-  final Line line;
+  // Only the last element of this list can have a [LineBreak], a [ChunkBreak] or a [PageBreak].
+  final List<Word> line;
 
   @override
   State<LineDisplay> createState() => _LineDisplayState();
@@ -111,7 +113,7 @@ class _LineDisplayState extends State<LineDisplay> {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      children: widget.line.words.map((w) => WordDisplay(word: w)).toList(),
+      children: widget.line.map((w) => WordDisplay(word: w)).toList(),
     );
   }
 }
@@ -119,7 +121,8 @@ class _LineDisplayState extends State<LineDisplay> {
 class ChunkDisplay extends StatefulWidget {
   const ChunkDisplay({super.key, required this.chunk});
 
-  final Chunk chunk;
+  // Only the last element of this list can have a [ChunkBreak] or a [PageBreak].
+  final List<Word> chunk;
 
   @override
   State<ChunkDisplay> createState() => _ChunkDisplayState();
@@ -129,10 +132,15 @@ class _ChunkDisplayState extends State<ChunkDisplay> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
-        ...widget.chunk.lines.map((l) => LineDisplay(line: l)),
-        Text(widget.chunk.translation),
-      ],
+      children: widget.chunk
+              // Returns an Iterable<List<Word>> representing a list of lines.
+              .splitAfter((Word word) => word.breakKind is LineBreak)
+              // This cast is in fact necessary.
+              // ignore: unnecessary_cast
+              .map((List<Word> l) => LineDisplay(line: l) as Widget)
+              .toList() +
+          // FIXME: ensure .last does not throw an exception.
+          [Text((widget.chunk.last.breakKind as ChunkBreak).chunkTranslation)],
     );
   }
 }
@@ -152,8 +160,11 @@ class _TextDisplayState extends State<TextDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    final chunkDisplayWidgets =
-        widget.text.chunks.map((c) => ChunkDisplay(chunk: c)).toList();
+    final chunkDisplayWidgets = widget.text.allWords
+        // Returns an Iterable<List<Word>> representing a list of chunks.
+        .splitAfter((Word word) => word.breakKind is ChunkBreak)
+        .map((List<Word> c) => ChunkDisplay(chunk: c))
+        .toList();
 
     // Display the chunks in a lazy list.
     return Padding(

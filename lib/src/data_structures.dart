@@ -2,49 +2,52 @@ import 'dart:collection';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// An instance of one of: [NoBreak], [LineBreak], [ChunkBreak] or [PageBreak].
+sealed class BreakKind {}
+
+// TODO: Can these classes all extend one another? Will this be useful?
+class NoBreak implements BreakKind {}
+
+class LineBreak implements BreakKind {}
+
+class ChunkBreak implements BreakKind {
+  /// The translation of the chunk which is terminated by this chunk break.
+  final String chunkTranslation;
+
+  ChunkBreak({required this.chunkTranslation});
+}
+
+class PageBreak extends ChunkBreak implements BreakKind {
+  PageBreak({required super.chunkTranslation});
+}
+
 final class Word extends LinkedListEntry<Word> {
   String source;
   String pronounciation = '-';
   String gloss = '-';
 
+  BreakKind breakKind = NoBreak();
+
   Word({required this.source});
-}
-
-class Line {
-  List<Word> words;
-
-  Line({required this.words});
-}
-
-class Chunk {
-  List<Line> lines;
-  String translation = 'Lorem.';
-
-  Chunk({required this.lines});
 }
 
 class FullText {
 // All the words comprising the source text.
   LinkedList<Word> allWords;
-  List<Chunk> chunks;
 
-  // By default, a source text is delimited by newline characters into chunks.
-  FullText.fromString(String source)
-      : allWords = LinkedList(),
-        chunks = [] {
+  FullText.fromString(String source) : allWords = LinkedList() {
+    // By default, the source text is delimited by newline characters into chunks.
     for (final String chunkString in source.split('\n')) {
-      // A List<Word> of all the words on this line (and so by default, this chunk).
-      final wordsOnThisLine = chunkString
+      // All the words on this line (and so by default, this chunk).
+      final List<Word> wordsOnThisLine = chunkString
           .split('')
           .map((String wordString) => Word(source: wordString))
           .toList();
+      // Mark the end of this line (and so by default, this chunk) with a chunk break.
+      // FIXME: ensure .last does not throw an exception.
+      wordsOnThisLine.last.breakKind = ChunkBreak(chunkTranslation: 'Lorem.');
 
       allWords.addAll(wordsOnThisLine);
-
-      final thisLine = Line(words: wordsOnThisLine);
-      // By default, each chunk contains one line.
-      final thisChunk = Chunk(lines: [thisLine]);
-      chunks.add(thisChunk);
     }
   }
 }
