@@ -2,6 +2,13 @@ import 'dart:collection';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+const breakKinds = [
+  'no break',
+  'line break',
+  'chunk break',
+  'page break',
+];
+
 /// An instance of one of: [NoBreak], [LineBreak], [ChunkBreak] or [PageBreak].
 sealed class BreakKind {}
 
@@ -14,11 +21,11 @@ class ChunkBreak implements BreakKind {
   /// The translation of the chunk which is terminated by this chunk break.
   final String chunkTranslation;
 
-  ChunkBreak({required this.chunkTranslation});
+  ChunkBreak({this.chunkTranslation = 'Lorem.'});
 }
 
 class PageBreak extends ChunkBreak implements BreakKind {
-  PageBreak({required super.chunkTranslation});
+  PageBreak();
 }
 
 final class Word extends LinkedListEntry<Word> {
@@ -45,7 +52,7 @@ class FullText {
           .toList();
       // Mark the end of this line (and so by default, this chunk) with a chunk break.
       // FIXME: ensure .last does not throw an exception.
-      wordsOnThisLine.last.breakKind = ChunkBreak(chunkTranslation: 'Lorem.');
+      wordsOnThisLine.last.breakKind = ChunkBreak();
 
       allWords.addAll(wordsOnThisLine);
     }

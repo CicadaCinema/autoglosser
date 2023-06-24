@@ -145,6 +145,147 @@ class _ChunkDisplayState extends State<ChunkDisplay> {
   }
 }
 
+class ButtonSidebar extends ConsumerStatefulWidget {
+  const ButtonSidebar({super.key, required this.map, required this.setState});
+
+  final FullMap map;
+
+  /// Callback for updating the layout of the full text display.
+  final void Function(void Function()) setState;
+
+  @override
+  ConsumerState<ButtonSidebar> createState() => _ButtonSidebarState();
+}
+
+class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
+  bool _autoglossEnabled = true;
+
+  String? dropdownValue;
+
+  @override
+  Widget build(BuildContext context) {
+    // Ensure autoglossing is enabled and a word is selected and this word isn't the last one, before presenting autoglossing options to the user.
+    final wordSelected = ref.watch(selectedWordProvider) != null;
+    final canAutogloss = _autoglossEnabled &&
+        wordSelected &&
+        ref.watch(selectedWordProvider)!.next != null;
+
+    // Produce an ElevatedButton for each translation within each mapping that matches the source of this word.
+    final glossWidgets = <Widget>[];
+    if (canAutogloss) {
+      for (final Mapping mapping in widget.map
+              .souceToMappings(ref.watch(selectedWordProvider)!.source) ??
+          []) {
+        for (final String translation in mapping.translation) {
+          glossWidgets.add(const SizedBox(height: 12));
+          glossWidgets.add(
+            ElevatedButton(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child:
+                    Text('Gloss with\n${mapping.pronounciation}\n$translation'),
+              ),
+              onPressed: () {
+                // Move onto the next word, as below.
+                final selectedWord = ref.read(selectedWordProvider)!;
+                ref.read(selectedWordProvider.notifier).set(selectedWord.next!);
+                // Set the pronounciation and translation.
+                selectedWord.pronounciation = mapping.pronounciation;
+                selectedWord.gloss = translation;
+              },
+            ),
+          );
+        }
+      }
+    }
+    final autoglossingButtons = <Widget>[
+      SwitchListTile(
+        title: const Text('Enable autoglossing'),
+        value: _autoglossEnabled,
+        onChanged: (bool value) {
+          // This is called when the user toggles the switch.
+          setState(() {
+            _autoglossEnabled = value;
+          });
+        },
+      ),
+    ];
+    if (canAutogloss) {
+      autoglossingButtons.addAll([
+        const SizedBox(
+          height: 12,
+        ),
+        ElevatedButton(
+          child: const Text('Skip word'),
+          onPressed: () {
+            // Skip this word and move onto the next.
+            final selectedWord = ref.read(selectedWordProvider);
+            ref.read(selectedWordProvider.notifier).set(selectedWord!.next!);
+          },
+        ),
+      ]);
+      autoglossingButtons.addAll(glossWidgets);
+    }
+
+    // Note that we cannot build nice maps from String to Type and invoke constuctors dynamically, nor rely on .runtimeType, so we must settle for these ugly if statements.
+    // Display the breakKind of the currently selected word.
+    final BreakKind? selectedBreakKind =
+        ref.watch(selectedWordProvider)?.breakKind;
+    if (selectedBreakKind is NoBreak) {
+      dropdownValue = breakKinds[0];
+    } else if (selectedBreakKind is LineBreak) {
+      dropdownValue = breakKinds[1];
+    } else if (selectedBreakKind is ChunkBreak) {
+      dropdownValue = breakKinds[2];
+    } else if (selectedBreakKind is PageBreak) {
+      dropdownValue = breakKinds[3];
+    } else {
+      assert(selectedBreakKind == null);
+      dropdownValue = null;
+    }
+    // A dropdown button for changing the break kind of the currently-selected word.
+    final breakSelectionDropdown = DropdownButton<String>(
+      value: dropdownValue,
+      onChanged: wordSelected
+          ? (String? value) {
+              widget.setState(() {
+                final selectedWord = ref.read(selectedWordProvider)!;
+                if (value == breakKinds[0]) {
+                  selectedWord.breakKind = NoBreak();
+                } else if (value == breakKinds[1]) {
+                  selectedWord.breakKind = LineBreak();
+                } else if (value == breakKinds[2]) {
+                  selectedWord.breakKind = ChunkBreak();
+                } else if (value == breakKinds[3]) {
+                  selectedWord.breakKind = PageBreak();
+                } else {
+                  throw StateError('Unexpected selection $value.');
+                }
+              });
+            }
+          : null,
+      items: breakKinds.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      disabledHint: const Text('No word selected'),
+    );
+
+    return SizedBox(
+      width: 300,
+      child: Column(
+        children: [
+          breakSelectionDropdown,
+          const Divider(),
+          ...autoglossingButtons,
+        ],
+      ),
+    );
+  }
+}
+
 class TextDisplay extends StatefulWidget {
   const TextDisplay({super.key, required this.text, required this.map});
 
@@ -156,8 +297,6 @@ class TextDisplay extends StatefulWidget {
 }
 
 class _TextDisplayState extends State<TextDisplay> {
-  bool _autoglossEnabled = true;
-
   @override
   Widget build(BuildContext context) {
     final chunkDisplayWidgets = widget.text.allWords
@@ -171,81 +310,9 @@ class _TextDisplayState extends State<TextDisplay> {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          Consumer(
-            builder: (context, ref, child) {
-              // Ensure autoglossing is enabled and a word is selected and this word isn't the last one in its line, before presenting options to the user.
-              // TODO: reorganise data strunctures once again to enable autoglossing across lines and chunks.
-              final canAutogloss = _autoglossEnabled &&
-                  ref.watch(selectedWordProvider) != null &&
-                  ref.watch(selectedWordProvider)!.next != null;
-
-              // Produce an ElevatedButton for each translation within each mapping that matches the source of this word.
-              final glossWidgets = <Widget>[];
-              if (canAutogloss) {
-                for (final Mapping mapping in widget.map.souceToMappings(
-                        ref.watch(selectedWordProvider)!.source) ??
-                    []) {
-                  for (final String translation in mapping.translation) {
-                    glossWidgets.add(const SizedBox(height: 12));
-                    glossWidgets.add(
-                      ElevatedButton(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Text(
-                              'Gloss with\n${mapping.pronounciation}\n$translation'),
-                        ),
-                        onPressed: () {
-                          // Move onto the next word, as below.
-                          final selected = ref.read(selectedWordProvider);
-                          ref
-                              .read(selectedWordProvider.notifier)
-                              .set(selected!.next!);
-                          // Set the pronounciation and translation.
-                          selected.pronounciation = mapping.pronounciation;
-                          selected.gloss = translation;
-                        },
-                      ),
-                    );
-                  }
-                }
-              }
-
-              return SizedBox(
-                width: 200,
-                child: Column(
-                  children: [
-                    SwitchListTile(
-                      title: const Text('Enable autoglossing'),
-                      value: _autoglossEnabled,
-                      onChanged: (bool value) {
-                        // This is called when the user toggles the switch.
-                        setState(() {
-                          _autoglossEnabled = value;
-                        });
-                      },
-                    ),
-                    ...canAutogloss
-                        ? [
-                            const SizedBox(
-                              height: 12,
-                            ),
-                            ElevatedButton(
-                              child: const Text('Skip word'),
-                              onPressed: () {
-                                // Skip this word and move onto the next.
-                                final selected = ref.read(selectedWordProvider);
-                                ref
-                                    .read(selectedWordProvider.notifier)
-                                    .set(selected!.next!);
-                              },
-                            ),
-                          ]
-                        : [],
-                    ...canAutogloss ? glossWidgets : [],
-                  ],
-                ),
-              );
-            },
+          ButtonSidebar(
+            map: widget.map,
+            setState: setState,
           ),
           Expanded(
             child: ListView.builder(
