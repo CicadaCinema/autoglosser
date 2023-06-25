@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// TODO: get rid of this and use an enum instead, like in the settings page
 const breakKinds = [
   'no break',
   'line break',
@@ -166,4 +167,17 @@ class SelectedMapping extends Notifier<Mapping?> {
   void clear() {
     state = null;
   }
+}
+
+enum SourceLanguage {
+  chinese,
+  alphabetic,
+}
+
+class GlobalSettings {
+  SourceLanguage sourceLanguage;
+
+  GlobalSettings({
+    required this.sourceLanguage,
+  });
 }

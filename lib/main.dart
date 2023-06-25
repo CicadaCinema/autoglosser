@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'src/data_structures.dart';
 import 'src/widgets/map_display.dart';
+import 'src/widgets/settings_display.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -115,9 +116,12 @@ class _MyAppState extends ConsumerState<MyApp>
 
   final fullMap = FullMap();
 
+  final globalSettings = GlobalSettings(sourceLanguage: SourceLanguage.chinese);
+
   static const List<Tab> _tabs = <Tab>[
     Tab(text: 'Translate'),
     Tab(text: 'Map'),
+    Tab(text: 'Settings'),
   ];
 
   late TabController _tabController;
@@ -184,8 +188,10 @@ class _MyAppState extends ConsumerState<MyApp>
         body: TabBarView(
           controller: _tabController,
           children: [
+            // Each of these widgets should (atempt to) only modify its first argument, leaving the rest as read-only.
             TextDisplay(text: fullText, map: fullMap),
-            MapDisplay(map: fullMap)
+            MapDisplay(map: fullMap),
+            SettingsDisplay(globalSettings: globalSettings),
           ],
         ),
       ),
