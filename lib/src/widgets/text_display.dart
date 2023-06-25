@@ -1,6 +1,7 @@
+import 'package:autoglosser/src/common.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:collection/collection.dart';
 
 import '../data_structures.dart';
 import 'common.dart';
@@ -46,6 +47,7 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
     ref.listen<Word?>(selectedWordProvider, (Word? prev, Word? next) {
       final previouslySelected = widget.word == prev;
       final nowSelected = widget.word == next;
+
       // Only rebuild this widget if the selected status of the word has changed.
       if (previouslySelected != nowSelected) {
         if (nowSelected) {
@@ -146,7 +148,11 @@ class _ChunkDisplayState extends State<ChunkDisplay> {
 }
 
 class ButtonSidebar extends ConsumerStatefulWidget {
-  const ButtonSidebar({super.key, required this.map, required this.setState});
+  const ButtonSidebar({
+    super.key,
+    required this.map,
+    required this.setState,
+  });
 
   final FullMap map;
 
@@ -212,9 +218,7 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
     ];
     if (canAutogloss) {
       autoglossingButtons.addAll([
-        const SizedBox(
-          height: 12,
-        ),
+        const SizedBox(height: 12),
         ElevatedButton(
           child: const Text('Skip word'),
           onPressed: () {
@@ -273,10 +277,98 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
       disabledHint: const Text('No word selected'),
     );
 
+    final selectedWord = ref.watch(selectedWordProvider);
+    final selectedLanguage = ref.watch(selectedLanguageProvider);
+    final canSplitWord = selectedWord != null &&
+        switch (selectedLanguage) {
+          SourceLanguage.chinese => selectedWord.source.length > 1,
+          SourceLanguage.alphabetic => selectedWord.source.contains(' '),
+        };
+    final canJoinWord = selectedWord != null && selectedWord.next != null;
+    final wordOperationButtons = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: canSplitWord
+              ? () {
+                  // The source texts of the two new words.
+                  late final String part1;
+                  late final String part2;
+
+                  switch (selectedLanguage) {
+                    case SourceLanguage.chinese:
+                      (part1, part2) = selectedWord.source.splitOnFirstChar();
+                    case SourceLanguage.alphabetic:
+                      (part1, part2) = selectedWord.source.splitOnSpace();
+                  }
+
+                  widget.setState(() {
+                    // Replace the source text of the selected word.
+                    ref.read(selectedWordProvider)!.source = part1;
+                    // Create a new word after the selected one.
+                    final newWord = Word(source: part2);
+                    ref.read(selectedWordProvider)!.insertAfter(newWord);
+
+                    // If the selected word's pronounciation had a space, split that too.
+                    if (selectedWord.pronounciation.contains(' ')) {
+                      final newPronounciation =
+                          selectedWord.pronounciation.splitOnSpace();
+                      ref.read(selectedWordProvider)!.pronounciation =
+                          newPronounciation.$1;
+                      newWord.pronounciation = newPronounciation.$2;
+                    }
+
+                    // If the selected word's gloss has a space, split that too.
+                    if (selectedWord.gloss.contains(' ')) {
+                      final newGloss = selectedWord.gloss.splitOnSpace();
+                      ref.read(selectedWordProvider)!.gloss = newGloss.$1;
+                      newWord.gloss = newGloss.$2;
+                    }
+
+                    // Finally, remove the current selection.
+                    ref.read(selectedWordProvider.notifier).clear();
+                  });
+                }
+              : null,
+          child: const Text('split word'),
+        ),
+        const SizedBox(width: 12),
+        ElevatedButton(
+          onPressed: canJoinWord
+              ? () {
+                  widget.setState(() {
+                    // Modify the fields of the selected word.
+                    ref.read(selectedWordProvider)!.source =
+                        switch (selectedLanguage) {
+                      SourceLanguage.chinese =>
+                        '${selectedWord.source}${selectedWord.next!.source}',
+                      SourceLanguage.alphabetic =>
+                        '${selectedWord.source} ${selectedWord.next!.source}',
+                    };
+                    ref.read(selectedWordProvider)!.pronounciation =
+                        '${selectedWord.pronounciation} ${selectedWord.next!.pronounciation}';
+                    ref.read(selectedWordProvider)!.gloss =
+                        '${selectedWord.gloss} ${selectedWord.next!.gloss}';
+
+                    // Remove the next word.
+                    ref.read(selectedWordProvider)!.next!.unlink();
+
+                    // Finally, remove the current selection.
+                    ref.read(selectedWordProvider.notifier).clear();
+                  });
+                }
+              : null,
+          child: const Text('join word'),
+        ),
+      ],
+    );
+
     return SizedBox(
       width: 300,
       child: Column(
         children: [
+          wordOperationButtons,
+          const Divider(),
           breakSelectionDropdown,
           const Divider(),
           ...autoglossingButtons,
@@ -287,7 +379,11 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
 }
 
 class TextDisplay extends StatefulWidget {
-  const TextDisplay({super.key, required this.text, required this.map});
+  const TextDisplay({
+    super.key,
+    required this.text,
+    required this.map,
+  });
 
   final FullText text;
   final FullMap map;

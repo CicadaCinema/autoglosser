@@ -37,18 +37,31 @@ final class Word extends LinkedListEntry<Word> {
   BreakKind breakKind = NoBreak();
 
   Word({required this.source});
+
+  /// Returns [true] if and only if the [source], [pronounciation] and [gloss]
+  /// fields of [this] and [other] match.
+  bool equals(Word other) =>
+      source == other.source &&
+      pronounciation == other.pronounciation &&
+      gloss == other.gloss;
 }
 
 class FullText {
 // All the words comprising the source text.
   LinkedList<Word> allWords;
 
-  FullText.fromString(String source) : allWords = LinkedList() {
+  FullText.fromString({
+    required String source,
+    required SourceLanguage sourceLanguage,
+  }) : allWords = LinkedList() {
     // By default, the source text is delimited by newline characters into chunks.
     for (final String chunkString in source.split('\n')) {
       // All the words on this line (and so by default, this chunk).
-      final List<Word> wordsOnThisLine = chunkString
-          .split('')
+      final List<String> wordsOnThisLineString = switch (sourceLanguage) {
+        SourceLanguage.chinese => chunkString.split(''),
+        SourceLanguage.alphabetic => chunkString.split(' '),
+      };
+      final List<Word> wordsOnThisLine = wordsOnThisLineString
           .map((String wordString) => Word(source: wordString))
           .toList();
       // Mark the end of this line (and so by default, this chunk) with a chunk break.
@@ -180,4 +193,21 @@ class GlobalSettings {
   GlobalSettings({
     required this.sourceLanguage,
   });
+}
+
+/// The currently-selected source language in the Settings.
+final selectedLanguageProvider =
+    NotifierProvider<SelectedLanguage, SourceLanguage>(SelectedLanguage.new);
+
+class SelectedLanguage extends Notifier<SourceLanguage> {
+  @override
+  SourceLanguage build() {
+    // Set the initial state.
+    return SourceLanguage.chinese;
+  }
+
+  /// Set a new language as the current selection.
+  void set(SourceLanguage l) {
+    state = l;
+  }
 }

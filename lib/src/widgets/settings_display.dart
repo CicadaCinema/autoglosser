@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data_structures.dart';
 
-class SettingsDisplay extends StatefulWidget {
-  const SettingsDisplay({super.key, required this.globalSettings});
-
-  final GlobalSettings globalSettings;
+class SettingsDisplay extends ConsumerStatefulWidget {
+  const SettingsDisplay({super.key});
 
   @override
-  State<SettingsDisplay> createState() => _SettingsDisplayState();
+  ConsumerState<SettingsDisplay> createState() => _SettingsDisplayState();
 }
 
-class _SettingsDisplayState extends State<SettingsDisplay> {
+class _SettingsDisplayState extends ConsumerState<SettingsDisplay> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -19,10 +18,10 @@ class _SettingsDisplayState extends State<SettingsDisplay> {
       child: ListView(
         children: [
           DropdownButton<SourceLanguage>(
-              value: widget.globalSettings.sourceLanguage,
+              value: ref.watch(selectedLanguageProvider),
               onChanged: (SourceLanguage? newValue) {
                 setState(() {
-                  widget.globalSettings.sourceLanguage = newValue!;
+                  ref.read(selectedLanguageProvider.notifier).set(newValue!);
                 });
               },
               items: SourceLanguage.values.map((SourceLanguage classType) {
