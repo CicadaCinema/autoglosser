@@ -73,6 +73,8 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
         else {
           ref.read(selectedWordProvider.notifier).set(widget.word);
         }
+        // Also clear the selected translation chunk.
+        ref.read(selectedChunkTranslationProvider.notifier).clear();
       },
       child: _textFieldsVisible
           ? Column(
@@ -182,16 +184,18 @@ class _ChunkTranslationDisplayState
     });
     return GestureDetector(
       onTap: () {
-        // If this word was already selected, clear the selection.
+        // If this translation chunk was already selected, clear the selection.
         if (ref.read(selectedChunkTranslationProvider) == widget.lastWord) {
           ref.read(selectedChunkTranslationProvider.notifier).clear();
         }
-        // Otherwise, update the currently-selected word.
+        // Otherwise, update the currently-selected translation chunk.
         else {
           ref
               .read(selectedChunkTranslationProvider.notifier)
               .set(widget.lastWord);
         }
+        // Also clear the selected word.
+        ref.read(selectedWordProvider.notifier).clear();
       },
       child: _textFieldVisible
           ?
