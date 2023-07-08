@@ -134,6 +134,7 @@ class _MyAppState extends ConsumerState<MyApp>
     // Clear selections when switching between tabs.
     _tabController.addListener(() {
       ref.read(selectedWordProvider.notifier).clear();
+      ref.read(selectedChunkTranslationProvider.notifier).clear();
       ref.read(selectedMappingProvider.notifier).clear();
     });
 

@@ -20,7 +20,7 @@ class LineBreak implements BreakKind {}
 
 class ChunkBreak implements BreakKind {
   /// The translation of the chunk which is terminated by this chunk break.
-  final String chunkTranslation;
+  String chunkTranslation;
 
   ChunkBreak({this.chunkTranslation = 'Lorem.'});
 }
@@ -78,6 +78,29 @@ final selectedWordProvider =
     NotifierProvider<SelectedWord, Word?>(SelectedWord.new);
 
 class SelectedWord extends Notifier<Word?> {
+  @override
+  Word? build() {
+    // Set the initial state.
+    return null;
+  }
+
+  /// Set a new word as the current selection.
+  void set(Word w) {
+    state = w;
+  }
+
+  /// Clear the curently-selected word.
+  void clear() {
+    state = null;
+  }
+}
+
+/// The currently-selected chunk translation in Translation Mode.
+final selectedChunkTranslationProvider =
+    NotifierProvider<SelectedChunkTranslation, Word?>(
+        SelectedChunkTranslation.new);
+
+class SelectedChunkTranslation extends Notifier<Word?> {
   @override
   Word? build() {
     // Set the initial state.

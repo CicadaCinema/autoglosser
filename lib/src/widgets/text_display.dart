@@ -120,8 +120,102 @@ class _LineDisplayState extends State<LineDisplay> {
   }
 }
 
+/// A widget which displays the translation of a chunk, or a text field if this
+/// chunk translation is selected.
+class ChunkTranslationDisplay extends ConsumerStatefulWidget {
+  ChunkTranslationDisplay({super.key, required this.lastWord})
+      : chunkBreak = lastWord.breakKind as ChunkBreak;
+
+  /// A reference to [lastWord.breakKind].
+  final ChunkBreak chunkBreak;
+
+  /// The last word of this chunk.
+  ///
+  /// The [Word.breakKind] of this [Word] is of type [ChunkBreak].
+  final Word lastWord;
+
+  @override
+  ConsumerState<ChunkTranslationDisplay> createState() =>
+      _ChunkTranslationDisplayState();
+}
+
+class _ChunkTranslationDisplayState
+    extends ConsumerState<ChunkTranslationDisplay> {
+  bool _textFieldVisible = false;
+  final _translationController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Add a listener to update this string whenever the text field value changes.
+    _translationController.addListener(() {
+      widget.chunkBreak.chunkTranslation = _translationController.text;
+    });
+  }
+
+  @override
+  void dispose() {
+    _translationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Listen for changes to the currently selected chunk translation.
+    ref.listen<Word?>(selectedChunkTranslationProvider,
+        (Word? prev, Word? next) {
+      final previouslySelected = widget.lastWord == prev;
+      final nowSelected = widget.lastWord == next;
+
+      // Only rebuild this widget if the selected status of the word has changed.
+      if (previouslySelected != nowSelected) {
+        if (nowSelected) {
+          // If this word is now selected, set the text field values to the existing pronounciation and gloss strings.
+          _translationController.text = widget.chunkBreak.chunkTranslation;
+        }
+
+        setState(() {
+          // Toggle selected status.
+          _textFieldVisible = !_textFieldVisible;
+        });
+      }
+    });
+    return GestureDetector(
+      onTap: () {
+        // If this word was already selected, clear the selection.
+        if (ref.read(selectedChunkTranslationProvider) == widget.lastWord) {
+          ref.read(selectedChunkTranslationProvider.notifier).clear();
+        }
+        // Otherwise, update the currently-selected word.
+        else {
+          ref
+              .read(selectedChunkTranslationProvider.notifier)
+              .set(widget.lastWord);
+        }
+      },
+      child: _textFieldVisible
+          ?
+          // TODO: can we make this use intrinsic width? only one TextField of this type will be on-screen at any given time, maybe we can afford the performance cost
+          SizedBox(
+              width: 400,
+              child: TextField(
+                controller: _translationController,
+                decoration: compactDecoration,
+              ),
+            )
+
+          // The majority of the time we will only need to show just this one widget.
+          : Text(widget.chunkBreak.chunkTranslation),
+    );
+  }
+}
+
+/// A widget which displays the source text of a chunk and its translation below.
 class ChunkDisplay extends StatefulWidget {
-  const ChunkDisplay({super.key, required this.chunk});
+  const ChunkDisplay({
+    super.key,
+    required this.chunk,
+  });
 
   // Only the last element of this list can have a [ChunkBreak] or a [PageBreak].
   final List<Word> chunk;
@@ -142,7 +236,7 @@ class _ChunkDisplayState extends State<ChunkDisplay> {
               .map((List<Word> l) => LineDisplay(line: l) as Widget)
               .toList() +
           // FIXME: ensure .last does not throw an exception.
-          [Text((widget.chunk.last.breakKind as ChunkBreak).chunkTranslation)],
+          [ChunkTranslationDisplay(lastWord: widget.chunk.last)],
     );
   }
 }
