@@ -1,16 +1,14 @@
 # autoglosser
 
-A new Flutter project.
+## Feature list
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- [ ] saving/loading translations as JSON
+- [ ] saving/loading maps as JSON
+- [ ] importing a text file string into translation mode
+- [x] splitting/combining words
+- [ ] ignoring punctuation
+- [x] adding glosses/translations to individual words in translation mode
+- [ ] editing chunk translations
+- [x] adding words to a gloss dictionary
+- [ ] gloss dictionary remains sorted
+- [x] using the gloss dictionary to gloss a word
