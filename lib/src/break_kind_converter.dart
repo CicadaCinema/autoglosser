@@ -59,7 +59,6 @@ class BreakKindConverter extends JsonConverter<BreakKind, BreakKindStore> {
       };
 }
 
-
 // TODO: wait for https://github.com/google/json_serializable.dart/issues/1327 to be implemented and use the following code instead
 /*
 // This class contains the serialisation logic for the BreakKind type.
