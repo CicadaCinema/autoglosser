@@ -26,7 +26,7 @@ class ChunkBreak implements BreakKind {
 }
 
 class PageBreak extends ChunkBreak implements BreakKind {
-  PageBreak();
+  PageBreak({super.chunkTranslation});
 }
 
 final class Word extends LinkedListEntry<Word> {
