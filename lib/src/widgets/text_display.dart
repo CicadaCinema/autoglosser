@@ -1,3 +1,7 @@
+import 'dart:convert';
+import '../save_string/desktop.dart'
+    if (dart.library.html) '../save_string/web.dart' as save_string;
+
 import 'package:autoglosser/src/common.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -248,10 +252,12 @@ class _ChunkDisplayState extends State<ChunkDisplay> {
 class ButtonSidebar extends ConsumerStatefulWidget {
   const ButtonSidebar({
     super.key,
+    required this.text,
     required this.map,
     required this.setState,
   });
 
+  final FullText text;
   final FullMap map;
 
   /// Callback for updating the layout of the full text display.
@@ -461,10 +467,32 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
       ],
     );
 
+    final saveLoadButtons = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            save_string.save(
+              content: jsonEncode(widget.text.toJson()),
+              filename: 'my-text.agtext',
+            );
+          },
+          child: const Text('save'),
+        ),
+        const SizedBox(width: 12),
+        ElevatedButton(
+          onPressed: () {},
+          child: const Text('load'),
+        ),
+      ],
+    );
+
     return SizedBox(
       width: 300,
       child: Column(
         children: [
+          saveLoadButtons,
+          const Divider(),
           wordOperationButtons,
           const Divider(),
           breakSelectionDropdown,
@@ -505,6 +533,7 @@ class _TextDisplayState extends State<TextDisplay> {
       child: Row(
         children: [
           ButtonSidebar(
+            text: widget.text,
             map: widget.map,
             setState: setState,
           ),
