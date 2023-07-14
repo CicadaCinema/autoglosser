@@ -17,6 +17,7 @@ const breakKinds = [
   'page break',
 ];
 
+// NOTE: be careful modifying this enum or adding elements to it! Check references.
 enum BreakKinds {
   noBreak,
   lineBreak,
