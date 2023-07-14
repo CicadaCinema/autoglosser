@@ -62,12 +62,35 @@ final class Word extends LinkedListEntry<Word> {
     required this.breakKind,
   });
 
-  /// Returns [true] if and only if the [source], [pronounciation] and [gloss]
-  /// fields of [this] and [other] match.
-  bool equals(Word other) =>
-      source == other.source &&
-      pronounciation == other.pronounciation &&
-      gloss == other.gloss;
+  /// Returns [true] if and only if the [source], [pronounciation], [gloss] and
+  /// (the type and any fields of) [breakKind] fields of [this] and [other]
+  /// match.
+  // TODO: possibly make this an extension method.
+  bool equals(Word other) {
+    final stringFieldsMatch = source == other.source &&
+        pronounciation == other.pronounciation &&
+        gloss == other.gloss;
+    if (!stringFieldsMatch) {
+      return false;
+    }
+
+    // We need these local variables for implicit type coercion.
+    final thisBreakKind = breakKind;
+    final otherBreakKind = other.breakKind;
+    if (thisBreakKind is PageBreak) {
+      return otherBreakKind is PageBreak &&
+          thisBreakKind.chunkTranslation == otherBreakKind.chunkTranslation;
+    } else if (thisBreakKind is ChunkBreak) {
+      return otherBreakKind is ChunkBreak &&
+          thisBreakKind.chunkTranslation == otherBreakKind.chunkTranslation;
+    } else if (thisBreakKind is LineBreak) {
+      return otherBreakKind is LineBreak;
+    } else if (thisBreakKind is NoBreak) {
+      return otherBreakKind is NoBreak;
+    } else {
+      throw StateError('The field breakKind has an invalid type.');
+    }
+  }
 
   factory Word.fromJson(Map<String, dynamic> json) => _$WordFromJson(json);
 
