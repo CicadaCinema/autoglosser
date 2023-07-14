@@ -1,4 +1,6 @@
 import 'dart:convert';
+// This is OK because this file is only imported if we are running on the web.
+// ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
 void save({
