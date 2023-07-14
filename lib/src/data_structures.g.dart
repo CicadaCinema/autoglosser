@@ -11,7 +11,7 @@ Word _$WordFromJson(Map<String, dynamic> json) => Word._allFields(
       pronounciation: json['pronounciation'] as String,
       gloss: json['gloss'] as String,
       breakKind: const BreakKindConverter()
-          .fromJson(json['breakKind'] as BreakKindStore),
+          .fromJson(json['breakKind'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$WordToJson(Word instance) => <String, dynamic>{
@@ -22,8 +22,8 @@ Map<String, dynamic> _$WordToJson(Word instance) => <String, dynamic>{
     };
 
 FullText _$FullTextFromJson(Map<String, dynamic> json) => FullText._allFields(
-      allWords: const LinkedListWordConverter()
-          .fromJson(json['allWords'] as List<Map<String, dynamic>>),
+      allWords:
+          const LinkedListWordConverter().fromJson(json['allWords'] as List),
     );
 
 Map<String, dynamic> _$FullTextToJson(FullText instance) => <String, dynamic>{
