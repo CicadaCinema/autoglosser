@@ -116,7 +116,7 @@ class _MyAppState extends ConsumerState<MyApp>
     sourceLanguage: SourceLanguage.chinese,
   );
 
-  final fullMap = FullMap();
+  var fullMap = FullMap();
 
   static const List<Tab> _tabs = <Tab>[
     Tab(text: 'Translate'),
@@ -129,6 +129,12 @@ class _MyAppState extends ConsumerState<MyApp>
   void replaceFullText(FullText text) {
     setState(() {
       fullText = text;
+    });
+  }
+
+  void replaceFullMap(FullMap map) {
+    setState(() {
+      fullMap = map;
     });
   }
 
@@ -201,7 +207,7 @@ class _MyAppState extends ConsumerState<MyApp>
               replaceFullText: replaceFullText,
               map: fullMap,
             ),
-            MapDisplay(map: fullMap),
+            MapDisplay(map: fullMap, replaceFullMap: replaceFullMap),
             const SettingsDisplay(),
           ],
         ),

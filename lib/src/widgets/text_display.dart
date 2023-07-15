@@ -472,6 +472,7 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
       ],
     );
 
+    // NOTE: we have a very similar implemenation for saving and loading the FullMap.
     final saveLoadButtons = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
