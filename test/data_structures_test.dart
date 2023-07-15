@@ -1,4 +1,5 @@
 import 'package:autoglosser/src/data_structures.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
 const alphabeticString = 'The quick brown fox jumped over the lazy dog.';
@@ -92,6 +93,49 @@ void main() {
           expect(originalWords[i].equals(resultingWords[i]), isTrue);
         }
       }
+    },
+  );
+
+  test(
+    'a map should survive a round trip to-from JSON',
+    () {
+      final originalMap = FullMap();
+
+      final a1 =
+          Mapping(pronounciation: 'a', source: 'b', translation: ['c1', 'c2']);
+      final a2 = Mapping(pronounciation: 'd', source: 'e', translation: ['f']);
+      final b = Mapping(pronounciation: 'g', source: 'h', translation: ['i']);
+
+      originalMap.addMapping(mapping: a1, section: 'sectionA');
+      originalMap.addMapping(mapping: a2, section: 'sectionA');
+      originalMap.addMapping(mapping: b, section: 'sectionB');
+
+      final json = originalMap.toJson();
+      final resultingMap = FullMap.fromJson(json);
+
+      expect(
+        const SetEquality().equals(
+          resultingMap.mappingSections.keys.toSet(),
+          {'sectionA', 'sectionB'},
+        ),
+        isTrue,
+      );
+
+      expect(resultingMap.mappingSections['sectionA']!.length, 2);
+      expect(resultingMap.mappingSections['sectionB']!.length, 1);
+
+      expect(
+        resultingMap.mappingSections['sectionA']!.first.equals(a1),
+        isTrue,
+      );
+      expect(
+        resultingMap.mappingSections['sectionA']!.first.next!.equals(a2),
+        isTrue,
+      );
+      expect(
+        resultingMap.mappingSections['sectionB']!.first.equals(b),
+        isTrue,
+      );
     },
   );
 }

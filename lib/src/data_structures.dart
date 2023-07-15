@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:autoglosser/src/linkedlist_mapping_converter.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -197,6 +198,14 @@ final class Mapping extends LinkedListEntry<Mapping> {
     required this.source,
     required this.translation,
   });
+
+  /// Returns [true] if and only if the [pronounciation], [source] and
+  /// [translation] (compared element-wise) fields of [this] and [other] match.
+  // TODO: possibly make this an extension method.
+  bool equals(Mapping other) =>
+      pronounciation == other.pronounciation &&
+      source == other.source &&
+      const ListEquality().equals(translation, other.translation);
 
   factory Mapping.fromJson(Map<String, dynamic> json) =>
       _$MappingFromJson(json);
