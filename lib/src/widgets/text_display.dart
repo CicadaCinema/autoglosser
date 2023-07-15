@@ -1,3 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+
+import '../save_string/desktop.dart'
+    if (dart.library.html) '../save_string/web.dart' as save_string;
+
 import 'package:autoglosser/src/common.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -248,10 +255,14 @@ class _ChunkDisplayState extends State<ChunkDisplay> {
 class ButtonSidebar extends ConsumerStatefulWidget {
   const ButtonSidebar({
     super.key,
+    required this.text,
+    required this.replaceFullText,
     required this.map,
     required this.setState,
   });
 
+  final FullText text;
+  final void Function(FullText) replaceFullText;
   final FullMap map;
 
   /// Callback for updating the layout of the full text display.
@@ -461,10 +472,45 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
       ],
     );
 
+    // NOTE: we have a very similar implemenation for saving and loading the FullMap.
+    final saveLoadButtons = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            save_string.save(
+              content: jsonEncode(widget.text.toJson()),
+              filename: 'my-text.agtext',
+            );
+          },
+          child: const Text('save'),
+        ),
+        const SizedBox(width: 12),
+        ElevatedButton(
+          onPressed: () {
+            FilePicker.platform.pickFiles(allowedExtensions: ['agtext']).then(
+                (FilePickerResult? result) {
+              if (result == null) {
+                // User cancelled the selection.
+                return;
+              }
+              final jsonString =
+                  File(result.files.single.path!).readAsStringSync();
+              final serialisedText = json.decode(jsonString);
+              widget.replaceFullText(FullText.fromJson(serialisedText));
+            });
+          },
+          child: const Text('load'),
+        ),
+      ],
+    );
+
     return SizedBox(
       width: 300,
       child: Column(
         children: [
+          saveLoadButtons,
+          const Divider(),
           wordOperationButtons,
           const Divider(),
           breakSelectionDropdown,
@@ -480,10 +526,12 @@ class TextDisplay extends StatefulWidget {
   const TextDisplay({
     super.key,
     required this.text,
+    required this.replaceFullText,
     required this.map,
   });
 
   final FullText text;
+  final void Function(FullText) replaceFullText;
   final FullMap map;
 
   @override
@@ -505,6 +553,8 @@ class _TextDisplayState extends State<TextDisplay> {
       child: Row(
         children: [
           ButtonSidebar(
+            text: widget.text,
+            replaceFullText: widget.replaceFullText,
             map: widget.map,
             setState: setState,
           ),

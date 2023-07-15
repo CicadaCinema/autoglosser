@@ -1,7 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data_structures.dart';
+import '../save_string/desktop.dart'
+    if (dart.library.html) '../save_string/web.dart' as save_string;
 import 'common.dart';
 
 /// Displays a mapping, allowing it to be edited while selected.
@@ -119,9 +125,14 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
 }
 
 class MapDisplay extends StatefulWidget {
-  const MapDisplay({super.key, required this.map});
+  const MapDisplay({
+    super.key,
+    required this.map,
+    required this.replaceFullMap,
+  });
 
   final FullMap map;
+  final void Function(FullMap) replaceFullMap;
 
   @override
   State<MapDisplay> createState() => _MapDisplayState();
@@ -155,6 +166,35 @@ class _MapDisplayState extends State<MapDisplay> {
             builder: (context, ref, child) {
               return Row(
                 children: [
+                  // NOTE: we have a very similar implemenation for saving and loading the FullText.
+                  ElevatedButton(
+                    onPressed: () {
+                      save_string.save(
+                        content: jsonEncode(widget.map.toJson()),
+                        filename: 'my-map.agmap',
+                      );
+                    },
+                    child: const Text('save'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      FilePicker.platform
+                          .pickFiles(allowedExtensions: ['agmap']).then(
+                              (FilePickerResult? result) {
+                        if (result == null) {
+                          // User cancelled the selection.
+                          return;
+                        }
+                        final jsonString =
+                            File(result.files.single.path!).readAsStringSync();
+                        final serialisedText = json.decode(jsonString);
+                        widget.replaceFullMap(FullMap.fromJson(serialisedText));
+                      });
+                    },
+                    child: const Text('load'),
+                  ),
+                  const SizedBox(width: 12),
                   ElevatedButton(
                     onPressed: () {
                       // Add a new mapping and set it as selected.

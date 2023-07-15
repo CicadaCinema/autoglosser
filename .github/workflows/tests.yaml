@@ -1,0 +1,30 @@
+name: Tests and linting
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      # TODO: eventually start passing '--fatal-infos' for slightly stricter analysis.
+      - name: Analyze project source
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test

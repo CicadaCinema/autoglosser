@@ -1,14 +1,30 @@
 import 'dart:collection';
 
+import 'package:autoglosser/src/linkedlist_mapping_converter.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:json_annotation/json_annotation.dart';
 
-// TODO: get rid of this and use an enum instead, like in the settings page
+import 'break_kind_converter.dart';
+import 'linkedlist_word_converter.dart';
+
+part 'data_structures.g.dart';
+
+// TODO: get rid of this and use the enum below instead, like in the settings page
 const breakKinds = [
   'no break',
   'line break',
   'chunk break',
   'page break',
 ];
+
+// NOTE: be careful modifying this enum or adding elements to it! Check references.
+enum BreakKinds {
+  noBreak,
+  lineBreak,
+  chunkBreak,
+  pageBreak,
+}
 
 /// An instance of one of: [NoBreak], [LineBreak], [ChunkBreak] or [PageBreak].
 sealed class BreakKind {}
@@ -29,25 +45,65 @@ class PageBreak extends ChunkBreak implements BreakKind {
   PageBreak({super.chunkTranslation});
 }
 
+@JsonSerializable()
 final class Word extends LinkedListEntry<Word> {
   String source;
   String pronounciation = '-';
   String gloss = '-';
 
+  @BreakKindConverter()
   BreakKind breakKind = NoBreak();
 
   Word({required this.source});
 
-  /// Returns [true] if and only if the [source], [pronounciation] and [gloss]
-  /// fields of [this] and [other] match.
-  bool equals(Word other) =>
-      source == other.source &&
-      pronounciation == other.pronounciation &&
-      gloss == other.gloss;
+  Word._allFields({
+    required this.source,
+    required this.pronounciation,
+    required this.gloss,
+    required this.breakKind,
+  });
+
+  /// Returns [true] if and only if the [source], [pronounciation], [gloss] and
+  /// (the type and any fields of) [breakKind] fields of [this] and [other]
+  /// match.
+  // TODO: possibly make this an extension method.
+  bool equals(Word other) {
+    final stringFieldsMatch = source == other.source &&
+        pronounciation == other.pronounciation &&
+        gloss == other.gloss;
+    if (!stringFieldsMatch) {
+      return false;
+    }
+
+    // We need these local variables for implicit type coercion.
+    final thisBreakKind = breakKind;
+    final otherBreakKind = other.breakKind;
+    if (thisBreakKind is PageBreak) {
+      return otherBreakKind is PageBreak &&
+          thisBreakKind.chunkTranslation == otherBreakKind.chunkTranslation;
+    } else if (thisBreakKind is ChunkBreak) {
+      return otherBreakKind is ChunkBreak &&
+          thisBreakKind.chunkTranslation == otherBreakKind.chunkTranslation;
+    } else if (thisBreakKind is LineBreak) {
+      return otherBreakKind is LineBreak;
+    } else if (thisBreakKind is NoBreak) {
+      return otherBreakKind is NoBreak;
+    } else {
+      throw StateError('The field breakKind has an invalid type.');
+    }
+  }
+
+  factory Word.fromJson(Map<String, dynamic> json) => _$WordFromJson(json);
+
+  Map<String, dynamic> toJson() => _$WordToJson(this);
 }
 
+@JsonSerializable(
+  explicitToJson: true,
+  converters: [LinkedListWordConverter()],
+)
 class FullText {
-// All the words comprising the source text.
+  /// All the words comprising the source text.
   LinkedList<Word> allWords;
 
   FullText.fromString({
@@ -71,6 +127,13 @@ class FullText {
       allWords.addAll(wordsOnThisLine);
     }
   }
+
+  FullText._allFields({required this.allWords});
+
+  factory FullText.fromJson(Map<String, dynamic> json) =>
+      _$FullTextFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FullTextToJson(this);
 }
 
 /// The currently-selected word in Translation Mode.
@@ -118,6 +181,7 @@ class SelectedChunkTranslation extends Notifier<Word?> {
   }
 }
 
+@JsonSerializable()
 final class Mapping extends LinkedListEntry<Mapping> {
   String pronounciation;
   String source;
@@ -128,14 +192,38 @@ final class Mapping extends LinkedListEntry<Mapping> {
     required this.source,
     required this.translation,
   });
+
+  Mapping._allFields({
+    required this.pronounciation,
+    required this.source,
+    required this.translation,
+  });
+
+  /// Returns [true] if and only if the [pronounciation], [source] and
+  /// [translation] (compared element-wise) fields of [this] and [other] match.
+  // TODO: possibly make this an extension method.
+  bool equals(Mapping other) =>
+      pronounciation == other.pronounciation &&
+      source == other.source &&
+      const ListEquality().equals(translation, other.translation);
+
+  factory Mapping.fromJson(Map<String, dynamic> json) =>
+      _$MappingFromJson(json);
+
+  Map<String, dynamic> toJson() => _$MappingToJson(this);
 }
 
+@JsonSerializable(
+  explicitToJson: true,
+  converters: [LinkedListMappingConverter()],
+)
 class FullMap {
   // TODO: protect against accidentally modifying this map.
   /// Maps from the name of a section to a linked list of mappings in that section.
   final Map<String, LinkedList<Mapping>> mappingSections;
 
   /// Maps from a source word to the list of mappings associated with that word, across all sections.
+  @JsonKey(includeFromJson: true, includeToJson: true)
   final Map<String, List<Mapping>> _sourceToMappings;
 
   List<Mapping>? souceToMappings(String source) => _sourceToMappings[source];
@@ -181,6 +269,17 @@ class FullMap {
   FullMap()
       : mappingSections = {},
         _sourceToMappings = {};
+
+  FullMap._allFields(
+    // The first argument must be a positional argument because named arguments starting with an underscore are not allowed.
+    this._sourceToMappings, {
+    required this.mappingSections,
+  });
+
+  factory FullMap.fromJson(Map<String, dynamic> json) =>
+      _$FullMapFromJson(json);
+
+  Map<String, dynamic> toJson() => _$FullMapToJson(this);
 }
 
 /// The currently-selected mapping in Map Mode.

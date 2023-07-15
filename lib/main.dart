@@ -19,7 +19,7 @@ class MyApp extends ConsumerStatefulWidget {
 
 class _MyAppState extends ConsumerState<MyApp>
     with SingleTickerProviderStateMixin {
-  final fullText = FullText.fromString(
+  var fullText = FullText.fromString(
     source: '''老子曰：治身，太上養神，其次養形，神清意平，百節皆寧，養生之本也，肥肌膚，充腹腸，供嗜欲，養生之末也。
 治國，太上養化，其次正法，民交讓爭處卑，財利爭受少，事力爭就勞，日化上而遷善，不知其所以然，治之本也，利賞而勸善，畏刑而不敢為非，法令正於上，百姓服於下，治之末也，上世養本，而下世事末。
 老子曰：欲治之主不世出，可與治之臣不萬一，以不世出求不萬一，此至治所以千歲不一也。
@@ -116,7 +116,7 @@ class _MyAppState extends ConsumerState<MyApp>
     sourceLanguage: SourceLanguage.chinese,
   );
 
-  final fullMap = FullMap();
+  var fullMap = FullMap();
 
   static const List<Tab> _tabs = <Tab>[
     Tab(text: 'Translate'),
@@ -125,6 +125,18 @@ class _MyAppState extends ConsumerState<MyApp>
   ];
 
   late TabController _tabController;
+
+  void replaceFullText(FullText text) {
+    setState(() {
+      fullText = text;
+    });
+  }
+
+  void replaceFullMap(FullMap map) {
+    setState(() {
+      fullMap = map;
+    });
+  }
 
   @override
   void initState() {
@@ -190,8 +202,12 @@ class _MyAppState extends ConsumerState<MyApp>
           controller: _tabController,
           children: [
             // Each of these widgets should (atempt to) only modify its first argument, leaving the rest as read-only.
-            TextDisplay(text: fullText, map: fullMap),
-            MapDisplay(map: fullMap),
+            TextDisplay(
+              text: fullText,
+              replaceFullText: replaceFullText,
+              map: fullMap,
+            ),
+            MapDisplay(map: fullMap, replaceFullMap: replaceFullMap),
             const SettingsDisplay(),
           ],
         ),
