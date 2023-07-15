@@ -180,8 +180,8 @@ class _MapDisplayState extends State<MapDisplay> {
                   ElevatedButton(
                     onPressed: () {
                       FilePicker.platform
-                          .pickFiles()
-                          .then((FilePickerResult? result) {
+                          .pickFiles(allowedExtensions: ['agmap']).then(
+                              (FilePickerResult? result) {
                         if (result == null) {
                           // User cancelled the selection.
                           return;
