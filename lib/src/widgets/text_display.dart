@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+
 import '../save_string/desktop.dart'
     if (dart.library.html) '../save_string/web.dart' as save_string;
 
@@ -253,11 +256,13 @@ class ButtonSidebar extends ConsumerStatefulWidget {
   const ButtonSidebar({
     super.key,
     required this.text,
+    required this.replaceFullText,
     required this.map,
     required this.setState,
   });
 
   final FullText text;
+  final void Function(FullText) replaceFullText;
   final FullMap map;
 
   /// Callback for updating the layout of the full text display.
@@ -481,7 +486,16 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
         ),
         const SizedBox(width: 12),
         ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            FilePicker.platform.pickFiles().then((FilePickerResult? result) {
+              if (result != null) {
+                final jsonString =
+                    File(result.files.single.path!).readAsStringSync();
+                final serialisedText = json.decode(jsonString);
+                widget.replaceFullText(FullText.fromJson(serialisedText));
+              }
+            });
+          },
           child: const Text('load'),
         ),
       ],
@@ -508,10 +522,12 @@ class TextDisplay extends StatefulWidget {
   const TextDisplay({
     super.key,
     required this.text,
+    required this.replaceFullText,
     required this.map,
   });
 
   final FullText text;
+  final void Function(FullText) replaceFullText;
   final FullMap map;
 
   @override
@@ -534,6 +550,7 @@ class _TextDisplayState extends State<TextDisplay> {
         children: [
           ButtonSidebar(
             text: widget.text,
+            replaceFullText: widget.replaceFullText,
             map: widget.map,
             setState: setState,
           ),
