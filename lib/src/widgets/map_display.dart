@@ -179,9 +179,10 @@ class _MapDisplayState extends State<MapDisplay> {
                   const SizedBox(width: 12),
                   ElevatedButton(
                     onPressed: () {
-                      FilePicker.platform
-                          .pickFiles(allowedExtensions: ['agmap']).then(
-                              (FilePickerResult? result) {
+                      FilePicker.platform.pickFiles(
+                        type: FileType.custom,
+                        allowedExtensions: ['agmap'],
+                      ).then((FilePickerResult? result) {
                         if (result == null) {
                           // User cancelled the selection.
                           return;

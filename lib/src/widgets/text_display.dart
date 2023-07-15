@@ -488,8 +488,10 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
         const SizedBox(width: 12),
         ElevatedButton(
           onPressed: () {
-            FilePicker.platform.pickFiles(allowedExtensions: ['agtext']).then(
-                (FilePickerResult? result) {
+            FilePicker.platform.pickFiles(
+              type: FileType.custom,
+              allowedExtensions: ['agtext'],
+            ).then((FilePickerResult? result) {
               if (result == null) {
                 // User cancelled the selection.
                 return;
