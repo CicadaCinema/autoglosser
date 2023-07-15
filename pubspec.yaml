@@ -43,3 +43,8 @@ flutter:
         weight: 700
       - asset: fonts/NotoSansSC-Black.otf
         weight: 900
+
+msix_config:
+  display_name: autoglosser
+  logo_path: web\icons\Icon-512.png
+  install_certificate: false
