@@ -1,0 +1,24 @@
+# copied from https://github.com/CicadaCinema/ffv/blob/master/.github/workflows/auto-build.yml
+
+name: Build for Windows
+on: [push]
+jobs:
+ windows-build:
+   runs-on: windows-latest
+   steps:
+     - uses: actions/checkout@v3
+     - uses: subosito/flutter-action@v2
+       with:
+         channel: 'stable'
+     - run: flutter --version
+     - run: flutter config --no-analytics
+     - run: flutter build windows
+     - uses: actions/upload-artifact@v3
+       with:
+         name: windows_exe
+         path: build/windows/runner/Release/
+     - run: flutter pub run msix:create
+     - uses: actions/upload-artifact@v3
+       with:
+         name: windows_msix
+         path: build/windows/runner/Release/ffv.msix

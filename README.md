@@ -2,8 +2,8 @@
 
 ## Feature list
 
-- [ ] saving/loading translations as JSON
-- [ ] saving/loading maps as JSON
+- [x] saving/loading translations as JSON
+- [x] saving/loading maps as JSON
 - [ ] importing a text file string into translation mode
 - [x] splitting/combining words
 - [ ] ignoring punctuation
