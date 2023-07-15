@@ -214,7 +214,10 @@ class _ChunkTranslationDisplayState
             )
 
           // The majority of the time we will only need to show just this one widget.
-          : Text(widget.chunkBreak.chunkTranslation),
+          : Text(
+              widget.chunkBreak.chunkTranslation,
+              style: const TextStyle(fontStyle: FontStyle.italic),
+            ),
     );
   }
 }
