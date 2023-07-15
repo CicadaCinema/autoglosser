@@ -1,13 +1,11 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:autoglosser/src/common.dart';
 import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../common.dart';
 import '../data_structures.dart';
 import '../save_string/desktop.dart'
     if (dart.library.html) '../save_string/web.dart' as save_string;
@@ -488,35 +486,58 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
         const SizedBox(width: 12),
         ElevatedButton(
           onPressed: () {
-            FilePicker.platform.pickFiles(
-              type: FileType.custom,
-              allowedExtensions: ['agtext'],
-            ).then((FilePickerResult? result) {
-              if (result == null || result.files.isEmpty) {
-                // User cancelled the selection.
-                return;
-              }
-              // We must hadle the web platform differently from other platforms.
-              // https://github.com/miguelpruivo/flutter_file_picker/wiki/FAQ#q-how-do-i-access-the-path-on-web
-              late final String jsonString;
-              if (kIsWeb) {
-                jsonString = utf8.decode(result.files.single.bytes!);
-              } else {
-                jsonString = File(result.files.single.path!).readAsStringSync();
-              }
-              final serialisedText = json.decode(jsonString);
-              widget.replaceFullText(FullText.fromJson(serialisedText));
-            });
+            FilePicker.platform
+                .pickFiles(
+                  type: FileType.custom,
+                  allowedExtensions: ['agtext'],
+                )
+                .then(filePickerResultToString)
+                .then(json.decode)
+                .then((dynamic serialisedText) =>
+                    widget.replaceFullText(FullText.fromJson(serialisedText)));
           },
           child: const Text('load'),
         ),
       ],
     );
 
+    final importTextButton = ElevatedButton(
+      onPressed: () {
+        FilePicker.platform
+            .pickFiles(
+              type: FileType.custom,
+              allowedExtensions: ['txt'],
+            )
+            .then(filePickerResultToString)
+            .then((String sourceTextString) {
+              // Try to clean up the input.
+              sourceTextString = sourceTextString
+                  // Remove whitespace characters (see the docs for a full list) at the beginning and end of the string.
+                  .trim()
+                  // Remove carriage returns in case we are on Windows.
+                  .replaceAll('\r', '')
+                  // Remove tab characters.
+                  .replaceAll('\t', '')
+                  // Shrink any repeating sequences of newline characters/spaces to just one newline/space each.
+                  .replaceAll(RegExp(r'\n+'), '\n')
+                  .replaceAll(RegExp(r' +'), ' ');
+
+              final fullText = FullText.fromString(
+                source: sourceTextString,
+                sourceLanguage: ref.read(selectedLanguageProvider),
+              );
+              widget.replaceFullText(fullText);
+            });
+      },
+      child: const Text('import source text'),
+    );
+
     return SizedBox(
       width: 300,
       child: Column(
         children: [
+          importTextButton,
+          const SizedBox(height: 12),
           saveLoadButtons,
           const Divider(),
           wordOperationButtons,
