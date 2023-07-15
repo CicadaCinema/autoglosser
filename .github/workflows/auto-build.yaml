@@ -21,4 +21,4 @@ jobs:
      - uses: actions/upload-artifact@v3
        with:
          name: windows_msix
-         path: build/windows/runner/Release/ffv.msix
+         path: build/windows/runner/Release/autoglosser.msix
