@@ -344,14 +344,14 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
     // Display the breakKind of the currently selected word.
     final BreakKind? selectedBreakKind =
         ref.watch(selectedWordProvider)?.breakKind;
-    if (selectedBreakKind is NoBreak) {
-      dropdownValue = breakKinds[0];
-    } else if (selectedBreakKind is LineBreak) {
-      dropdownValue = breakKinds[1];
+    if (selectedBreakKind is PageBreak) {
+      dropdownValue = breakKinds[3];
     } else if (selectedBreakKind is ChunkBreak) {
       dropdownValue = breakKinds[2];
-    } else if (selectedBreakKind is PageBreak) {
-      dropdownValue = breakKinds[3];
+    } else if (selectedBreakKind is LineBreak) {
+      dropdownValue = breakKinds[1];
+    } else if (selectedBreakKind is NoBreak) {
+      dropdownValue = breakKinds[0];
     } else {
       assert(selectedBreakKind == null);
       dropdownValue = null;
