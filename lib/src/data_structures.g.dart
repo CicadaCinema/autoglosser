@@ -53,10 +53,8 @@ FullMap _$FullMapFromJson(Map<String, dynamic> json) => FullMap._allFields(
                 .toList()),
       ),
       mappingSections: (json['mappingSections'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry(
-            k,
-            const LinkedListMappingConverter()
-                .fromJson(e as List<Map<String, dynamic>>)),
+        (k, e) =>
+            MapEntry(k, const LinkedListMappingConverter().fromJson(e as List)),
       ),
     );
 
