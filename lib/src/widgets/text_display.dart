@@ -1,16 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:file_picker/file_picker.dart';
-
-import '../save_string/desktop.dart'
-    if (dart.library.html) '../save_string/web.dart' as save_string;
 
 import 'package:autoglosser/src/common.dart';
 import 'package:collection/collection.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data_structures.dart';
+import '../save_string/desktop.dart'
+    if (dart.library.html) '../save_string/web.dart' as save_string;
 import 'common.dart';
 
 /// Displays a source word, its pronounciation and its gloss, allowing the
@@ -492,12 +492,18 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
               type: FileType.custom,
               allowedExtensions: ['agtext'],
             ).then((FilePickerResult? result) {
-              if (result == null) {
+              if (result == null || result.files.isEmpty) {
                 // User cancelled the selection.
                 return;
               }
-              final jsonString =
-                  File(result.files.single.path!).readAsStringSync();
+              // We must hadle the web platform differently from other platforms.
+              // https://github.com/miguelpruivo/flutter_file_picker/wiki/FAQ#q-how-do-i-access-the-path-on-web
+              late final String jsonString;
+              if (kIsWeb) {
+                jsonString = utf8.decode(result.files.single.bytes!);
+              } else {
+                jsonString = File(result.files.single.path!).readAsStringSync();
+              }
               final serialisedText = json.decode(jsonString);
               widget.replaceFullText(FullText.fromJson(serialisedText));
             });

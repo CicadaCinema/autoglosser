@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -183,12 +184,19 @@ class _MapDisplayState extends State<MapDisplay> {
                         type: FileType.custom,
                         allowedExtensions: ['agmap'],
                       ).then((FilePickerResult? result) {
-                        if (result == null) {
+                        if (result == null || result.files.isEmpty) {
                           // User cancelled the selection.
                           return;
                         }
-                        final jsonString =
-                            File(result.files.single.path!).readAsStringSync();
+                        // We must hadle the web platform differently from other platforms.
+                        // https://github.com/miguelpruivo/flutter_file_picker/wiki/FAQ#q-how-do-i-access-the-path-on-web
+                        late final String jsonString;
+                        if (kIsWeb) {
+                          jsonString = utf8.decode(result.files.single.bytes!);
+                        } else {
+                          jsonString = File(result.files.single.path!)
+                              .readAsStringSync();
+                        }
                         final serialisedText = json.decode(jsonString);
                         widget.replaceFullMap(FullMap.fromJson(serialisedText));
                       });
