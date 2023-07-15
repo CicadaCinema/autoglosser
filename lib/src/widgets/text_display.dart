@@ -489,12 +489,14 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
         ElevatedButton(
           onPressed: () {
             FilePicker.platform.pickFiles().then((FilePickerResult? result) {
-              if (result != null) {
-                final jsonString =
-                    File(result.files.single.path!).readAsStringSync();
-                final serialisedText = json.decode(jsonString);
-                widget.replaceFullText(FullText.fromJson(serialisedText));
+              if (result == null) {
+                // User cancelled the selection.
+                return;
               }
+              final jsonString =
+                  File(result.files.single.path!).readAsStringSync();
+              final serialisedText = json.decode(jsonString);
+              widget.replaceFullText(FullText.fromJson(serialisedText));
             });
           },
           child: const Text('load'),
