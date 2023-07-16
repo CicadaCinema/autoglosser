@@ -391,7 +391,7 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
     final selectedLanguage = ref.watch(selectedLanguageProvider);
     final canSplitWord = selectedWord != null &&
         switch (selectedLanguage) {
-          SourceLanguage.chinese => selectedWord.source.length > 1,
+          SourceLanguage.chinese => selectedWord.source.runes.length > 1,
           SourceLanguage.alphabetic => selectedWord.source.contains(' '),
         };
     final canJoinWord = selectedWord != null && selectedWord.next != null;
@@ -407,7 +407,7 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
 
                   switch (selectedLanguage) {
                     case SourceLanguage.chinese:
-                      (part1, part2) = selectedWord.source.splitOnFirstChar();
+                      (part1, part2) = selectedWord.source.splitOnFirstRune();
                     case SourceLanguage.alphabetic:
                       (part1, part2) = selectedWord.source.splitOnSpace();
                   }
