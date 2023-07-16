@@ -1,3 +1,4 @@
+import 'package:autoglosser/src/common.dart';
 import 'package:autoglosser/src/data_structures/data_structures.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -135,6 +136,41 @@ void main() {
       expect(
         resultingMap.mappingSections['sectionB']!.first.equals(b),
         isTrue,
+      );
+    },
+  );
+
+  test(
+    'text containing characters outside the Basic Multilingual Plane (plane 0) should be split correctly',
+    () {
+      const a = 'a';
+      const b = 'b';
+      const c = 'c';
+      const clef = '\u{1D11E}';
+      const papuaNewGuineaFlag = '🇵🇬';
+      const guadeloupeFlag = '🇬🇵';
+
+      expect(a.length, equals(1));
+      expect(b.length, equals(1));
+      expect(c.length, equals(1));
+      expect(clef.length, equals(2));
+      expect(papuaNewGuineaFlag.length, equals(2));
+      expect(guadeloupeFlag.length, equals(2));
+
+      expect(a.runes.length, equals(1));
+      expect(b.runes.length, equals(1));
+      expect(c.runes.length, equals(1));
+      expect(clef.runes.length, equals(1));
+      expect(papuaNewGuineaFlag.runes.length, equals(1));
+      expect(guadeloupeFlag.runes.length, equals(1));
+
+      expect((a + b + c).splitOnFirstRune(), equals((a, b + c)));
+      expect((a + clef).splitOnFirstRune(), equals((a, clef)));
+      expect((clef + a).splitOnFirstRune(), equals((clef, a)));
+
+      expect(
+        (papuaNewGuineaFlag + guadeloupeFlag).splitOnFirstRune(),
+        equals((papuaNewGuineaFlag, guadeloupeFlag)),
       );
     },
   );

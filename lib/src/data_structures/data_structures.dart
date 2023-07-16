@@ -118,7 +118,8 @@ class FullText {
     for (final String chunkString in source.split('\n')) {
       // All the words on this line (and so by default, this chunk).
       final List<String> wordsOnThisLineString = switch (sourceLanguage) {
-        SourceLanguage.chinese => chunkString.split(''),
+        SourceLanguage.chinese =>
+          chunkString.runes.map((rune) => String.fromCharCode(rune)).toList(),
         SourceLanguage.alphabetic => chunkString.split(' '),
       };
       final List<Word> wordsOnThisLine = wordsOnThisLineString
