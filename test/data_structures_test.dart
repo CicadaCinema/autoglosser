@@ -147,30 +147,52 @@ void main() {
       const b = 'b';
       const c = 'c';
       const clef = '\u{1D11E}';
-      const papuaNewGuineaFlag = '🇵🇬';
-      const guadeloupeFlag = '🇬🇵';
+      const common = '\u{597D}';
+      const rare = '\u{26BBC}';
 
       expect(a.length, equals(1));
       expect(b.length, equals(1));
       expect(c.length, equals(1));
       expect(clef.length, equals(2));
-      expect(papuaNewGuineaFlag.length, equals(2));
-      expect(guadeloupeFlag.length, equals(2));
+      expect(common.length, equals(1));
+      expect(rare.length, equals(2));
 
       expect(a.runes.length, equals(1));
       expect(b.runes.length, equals(1));
       expect(c.runes.length, equals(1));
       expect(clef.runes.length, equals(1));
-      expect(papuaNewGuineaFlag.runes.length, equals(1));
-      expect(guadeloupeFlag.runes.length, equals(1));
+      expect(common.runes.length, equals(1));
+      expect(rare.runes.length, equals(1));
 
       expect((a + b + c).splitOnFirstRune(), equals((a, b + c)));
       expect((a + clef).splitOnFirstRune(), equals((a, clef)));
       expect((clef + a).splitOnFirstRune(), equals((clef, a)));
 
       expect(
-        (papuaNewGuineaFlag + guadeloupeFlag).splitOnFirstRune(),
-        equals((papuaNewGuineaFlag, guadeloupeFlag)),
+        (common + rare).splitOnFirstRune(),
+        equals((common, rare)),
+      );
+      expect(
+        (rare + common).splitOnFirstRune(),
+        equals((rare, common)),
+      );
+
+      expect(
+        (clef + common).splitOnFirstRune(),
+        equals((clef, common)),
+      );
+      expect(
+        (common + clef).splitOnFirstRune(),
+        equals((common, clef)),
+      );
+
+      expect(
+        (clef + rare).splitOnFirstRune(),
+        equals((clef, rare)),
+      );
+      expect(
+        (rare + clef).splitOnFirstRune(),
+        equals((rare, clef)),
       );
     },
   );
