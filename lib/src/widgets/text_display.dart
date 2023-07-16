@@ -489,6 +489,8 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
         const SizedBox(width: 12),
         ElevatedButton(
           onPressed: () {
+            ref.read(selectedWordProvider.notifier).clear();
+            ref.read(selectedChunkTranslationProvider.notifier).clear();
             FilePicker.platform
                 .pickFiles(
                   type: FileType.custom,
@@ -506,6 +508,8 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
 
     final importTextButton = ElevatedButton(
       onPressed: () {
+        ref.read(selectedWordProvider.notifier).clear();
+        ref.read(selectedChunkTranslationProvider.notifier).clear();
         FilePicker.platform
             .pickFiles(
               type: FileType.custom,

@@ -179,6 +179,7 @@ class _MapDisplayState extends State<MapDisplay> {
                   const SizedBox(width: 12),
                   ElevatedButton(
                     onPressed: () {
+                      ref.read(selectedMappingProvider.notifier).clear();
                       FilePicker.platform
                           .pickFiles(
                             type: FileType.custom,
