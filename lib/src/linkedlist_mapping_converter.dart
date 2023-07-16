@@ -2,7 +2,7 @@ import 'dart:collection';
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'data_structures.dart';
+import 'data_structures/data_structures.dart';
 
 class LinkedListMappingConverter
     extends JsonConverter<LinkedList<Mapping>, List> {

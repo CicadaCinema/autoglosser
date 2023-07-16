@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../common.dart';
-import '../data_structures.dart';
+import '../data_structures/data_structures.dart';
 import '../save_string/desktop.dart'
     if (dart.library.html) '../save_string/web.dart' as save_string;
 import 'common.dart';

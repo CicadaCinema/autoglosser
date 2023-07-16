@@ -5,8 +5,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-import 'break_kind_converter.dart';
-import 'linkedlist_word_converter.dart';
+import '../break_kind_converter.dart';
+import '../linkedlist_word_converter.dart';
 
 part 'data_structures.g.dart';
 

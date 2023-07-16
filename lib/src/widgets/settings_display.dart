@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../data_structures.dart';
+import '../data_structures/data_structures.dart';
 
 class SettingsDisplay extends ConsumerStatefulWidget {
   const SettingsDisplay({super.key});

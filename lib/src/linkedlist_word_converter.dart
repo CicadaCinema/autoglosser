@@ -2,7 +2,7 @@ import 'dart:collection';
 
 import 'package:json_annotation/json_annotation.dart';
 
-import 'data_structures.dart';
+import 'data_structures/data_structures.dart';
 
 class LinkedListWordConverter extends JsonConverter<LinkedList<Word>, List> {
   const LinkedListWordConverter();

@@ -1,4 +1,4 @@
-import 'package:autoglosser/src/data_structures.dart';
+import 'package:autoglosser/src/data_structures/data_structures.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 

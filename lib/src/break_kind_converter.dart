@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import 'data_structures.dart';
+import 'data_structures/data_structures.dart';
 
 // This class contains the serialisation logic for the BreakKind type.
 class BreakKindConverter
