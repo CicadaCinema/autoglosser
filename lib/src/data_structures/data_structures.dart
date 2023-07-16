@@ -309,14 +309,6 @@ enum SourceLanguage {
   alphabetic,
 }
 
-class GlobalSettings {
-  SourceLanguage sourceLanguage;
-
-  GlobalSettings({
-    required this.sourceLanguage,
-  });
-}
-
 /// The currently-selected source language in the Settings.
 final selectedLanguageProvider =
     NotifierProvider<SelectedLanguage, SourceLanguage>(SelectedLanguage.new);
