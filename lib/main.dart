@@ -188,7 +188,7 @@ class _MyAppState extends ConsumerState<MyApp>
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(fontFamily: 'NotoSansSC'),
+      theme: ThemeData(fontFamily: 'Plangothic'),
       home: Scaffold(
         appBar: AppBar(
           bottom: TabBar(

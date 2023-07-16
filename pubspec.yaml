@@ -30,19 +30,10 @@ dev_dependencies:
 flutter:
   uses-material-design: false
   fonts:
-  - family: NotoSansSC
+  - family: Plangothic
     fonts:
-      - asset: fonts/NotoSansSC-Thin.otf
-        weight: 100
-      - asset: fonts/NotoSansSC-Light.otf
-        weight: 300
-      - asset: fonts/NotoSansSC-Regular.otf
-      - asset: fonts/NotoSansSC-Medium.otf
-        weight: 500
-      - asset: fonts/NotoSansSC-Bold.otf
-        weight: 700
-      - asset: fonts/NotoSansSC-Black.otf
-        weight: 900
+      - asset: 'fonts/PlangothicP1-Regular (allideo).ttf'
+      - asset: 'fonts/PlangothicP2-Regular.ttf'
 
 msix_config:
   display_name: autoglosser
