@@ -2,8 +2,12 @@ import 'dart:collection';
 
 import 'package:autoglosser/src/linkedlist_mapping_converter.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:json_annotation/json_annotation.dart';
+
+export './global_providers/selected_word.dart';
+export './global_providers/selected_chunk.dart';
+export './global_providers/selected_mapping.dart';
+export './global_providers/selected_language.dart';
 
 import '../break_kind_converter.dart';
 import '../linkedlist_word_converter.dart';
@@ -136,51 +140,6 @@ class FullText {
   Map<String, dynamic> toJson() => _$FullTextToJson(this);
 }
 
-/// The currently-selected word in Translation Mode.
-final selectedWordProvider =
-    NotifierProvider<SelectedWord, Word?>(SelectedWord.new);
-
-class SelectedWord extends Notifier<Word?> {
-  @override
-  Word? build() {
-    // Set the initial state.
-    return null;
-  }
-
-  /// Set a new word as the current selection.
-  void set(Word w) {
-    state = w;
-  }
-
-  /// Clear the curently-selected word.
-  void clear() {
-    state = null;
-  }
-}
-
-/// The currently-selected chunk translation in Translation Mode.
-final selectedChunkTranslationProvider =
-    NotifierProvider<SelectedChunkTranslation, Word?>(
-        SelectedChunkTranslation.new);
-
-class SelectedChunkTranslation extends Notifier<Word?> {
-  @override
-  Word? build() {
-    // Set the initial state.
-    return null;
-  }
-
-  /// Set a new word as the current selection.
-  void set(Word w) {
-    state = w;
-  }
-
-  /// Clear the curently-selected word.
-  void clear() {
-    state = null;
-  }
-}
-
 @JsonSerializable()
 final class Mapping extends LinkedListEntry<Mapping> {
   String pronounciation;
@@ -282,46 +241,7 @@ class FullMap {
   Map<String, dynamic> toJson() => _$FullMapToJson(this);
 }
 
-/// The currently-selected mapping in Map Mode.
-final selectedMappingProvider =
-    NotifierProvider<SelectedMapping, Mapping?>(SelectedMapping.new);
-
-class SelectedMapping extends Notifier<Mapping?> {
-  @override
-  Mapping? build() {
-    // Set the initial state.
-    return null;
-  }
-
-  /// Set a new mapping as the current selection.
-  void set(Mapping m) {
-    state = m;
-  }
-
-  /// Clear the curently-selected mapping.
-  void clear() {
-    state = null;
-  }
-}
-
 enum SourceLanguage {
   chinese,
   alphabetic,
-}
-
-/// The currently-selected source language in the Settings.
-final selectedLanguageProvider =
-    NotifierProvider<SelectedLanguage, SourceLanguage>(SelectedLanguage.new);
-
-class SelectedLanguage extends Notifier<SourceLanguage> {
-  @override
-  SourceLanguage build() {
-    // Set the initial state.
-    return SourceLanguage.chinese;
-  }
-
-  /// Set a new language as the current selection.
-  void set(SourceLanguage l) {
-    state = l;
-  }
 }
