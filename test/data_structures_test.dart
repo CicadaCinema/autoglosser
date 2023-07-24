@@ -112,6 +112,14 @@ void main() {
       originalMap.addMapping(mapping: b, section: 'sectionB');
 
       final json = originalMap.toJson();
+
+      // We don't want to save FullMap._sourceToMappings because this field
+      // must be generated from FullMap.mappingSections.
+      // We later rely on the fact that these two fields will contain pairs of
+      // identical objects of type Mapping.
+      expect(json['sourceToMappings'], isNull);
+      expect(json['_sourceToMappings'], isNull);
+
       final resultingMap = FullMap.fromJson(json);
 
       expect(
@@ -125,16 +133,23 @@ void main() {
       expect(resultingMap.mappingSections['sectionA']!.length, 2);
       expect(resultingMap.mappingSections['sectionB']!.length, 1);
 
+      final wantA1 = resultingMap.mappingSections['sectionA']!.first;
+      final wantA2 = resultingMap.mappingSections['sectionA']!.first.next!;
+      final wantB = resultingMap.mappingSections['sectionB']!.first;
+      expect(wantA1.equals(a1), isTrue);
+      expect(wantA2.equals(a2), isTrue);
+      expect(wantB.equals(b), isTrue);
+
       expect(
-        resultingMap.mappingSections['sectionA']!.first.equals(a1),
+        identical(resultingMap.souceToMappings(wantA1.source)!.single, wantA1),
         isTrue,
       );
       expect(
-        resultingMap.mappingSections['sectionA']!.first.next!.equals(a2),
+        identical(resultingMap.souceToMappings(wantA2.source)!.single, wantA2),
         isTrue,
       );
       expect(
-        resultingMap.mappingSections['sectionB']!.first.equals(b),
+        identical(resultingMap.souceToMappings(wantB.source)!.single, wantB),
         isTrue,
       );
     },

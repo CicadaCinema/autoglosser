@@ -183,7 +183,6 @@ class FullMap {
   final Map<String, LinkedList<Mapping>> mappingSections;
 
   /// Maps from a source word to the list of mappings associated with that word, across all sections.
-  @JsonKey(includeFromJson: true, includeToJson: true)
   final Map<String, List<Mapping>> _sourceToMappings;
 
   List<Mapping>? souceToMappings(String source) => _sourceToMappings[source];
@@ -230,11 +229,20 @@ class FullMap {
       : mappingSections = {},
         _sourceToMappings = {};
 
-  FullMap._allFields(
-    // The first argument must be a positional argument because named arguments starting with an underscore are not allowed.
-    this._sourceToMappings, {
+  FullMap._allFields({
     required this.mappingSections,
-  });
+  }) : _sourceToMappings = {} {
+    // Populate FullMap._sourceToMappings using values from
+    // FullMap.mappingSections.
+    for (final section in mappingSections.values) {
+      for (final mapping in section) {
+        if (!_sourceToMappings.containsKey(mapping.source)) {
+          _sourceToMappings[mapping.source] = [];
+        }
+        _sourceToMappings[mapping.source]!.add(mapping);
+      }
+    }
+  }
 
   factory FullMap.fromJson(Map<String, dynamic> json) =>
       _$FullMapFromJson(json);

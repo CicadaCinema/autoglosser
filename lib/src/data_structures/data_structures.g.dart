@@ -45,13 +45,6 @@ Map<String, dynamic> _$MappingToJson(Mapping instance) => <String, dynamic>{
     };
 
 FullMap _$FullMapFromJson(Map<String, dynamic> json) => FullMap._allFields(
-      (json['_sourceToMappings'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry(
-            k,
-            (e as List<dynamic>)
-                .map((e) => Mapping.fromJson(e as Map<String, dynamic>))
-                .toList()),
-      ),
       mappingSections: (json['mappingSections'] as Map<String, dynamic>).map(
         (k, e) =>
             MapEntry(k, const LinkedListMappingConverter().fromJson(e as List)),
@@ -61,6 +54,4 @@ FullMap _$FullMapFromJson(Map<String, dynamic> json) => FullMap._allFields(
 Map<String, dynamic> _$FullMapToJson(FullMap instance) => <String, dynamic>{
       'mappingSections': instance.mappingSections.map(
           (k, e) => MapEntry(k, const LinkedListMappingConverter().toJson(e))),
-      '_sourceToMappings': instance._sourceToMappings
-          .map((k, e) => MapEntry(k, e.map((e) => e.toJson()).toList())),
     };
