@@ -197,7 +197,15 @@ class FullMap {
     if (!mappingSections.containsKey(section)) {
       mappingSections[section] = LinkedList();
     }
-    mappingSections[section]!.addFirst(mapping);
+    mappingSections[section]!.add(mapping);
+
+    // Ensure that the new entry is initially correctly positioned.
+    // This method re-positions it in its linked list if necessary to maintain
+    // the sort order.
+    updatePronunciation(
+      mapping: mapping,
+      newPronunciation: mapping.pronounciation,
+    );
 
     // Update _sourceToMappings.
     if (!_sourceToMappings.containsKey(mapping.source)) {
