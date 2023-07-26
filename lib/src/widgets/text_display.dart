@@ -259,7 +259,7 @@ class ButtonSidebar extends ConsumerStatefulWidget {
     required this.text,
     required this.replaceFullText,
     required this.map,
-    required this.setState,
+    required this.textDisplaySetState,
   });
 
   final FullText text;
@@ -267,7 +267,7 @@ class ButtonSidebar extends ConsumerStatefulWidget {
   final FullMap map;
 
   /// Callback for updating the layout of the full text display.
-  final void Function(void Function()) setState;
+  final void Function(void Function()) textDisplaySetState;
 
   @override
   ConsumerState<ButtonSidebar> createState() => _ButtonSidebarState();
@@ -362,7 +362,7 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
       value: dropdownValue,
       onChanged: wordSelected
           ? (String? value) {
-              widget.setState(() {
+              widget.textDisplaySetState(() {
                 final selectedWord = ref.read(selectedWordProvider)!;
                 if (value == breakKinds[0]) {
                   selectedWord.breakKind = NoBreak();
@@ -412,7 +412,7 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
                       (part1, part2) = selectedWord.source.splitOnSpace();
                   }
 
-                  widget.setState(() {
+                  widget.textDisplaySetState(() {
                     // Replace the source text of the selected word.
                     ref.read(selectedWordProvider)!.source = part1;
                     // Create a new word after the selected one.
@@ -446,7 +446,7 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
         ElevatedButton(
           onPressed: canJoinWord
               ? () {
-                  widget.setState(() {
+                  widget.textDisplaySetState(() {
                     // Modify the fields of the selected word.
                     ref.read(selectedWordProvider)!.source =
                         switch (selectedLanguage) {
@@ -592,7 +592,7 @@ class _TextDisplayState extends State<TextDisplay> {
             text: widget.text,
             replaceFullText: widget.replaceFullText,
             map: widget.map,
-            setState: setState,
+            textDisplaySetState: setState,
           ),
           Expanded(
             child: ListView.builder(

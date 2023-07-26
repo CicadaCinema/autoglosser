@@ -16,14 +16,14 @@ class MappingDisplay extends ConsumerStatefulWidget {
     super.key,
     required this.mapping,
     required this.map,
-    required this.setState,
+    required this.mapDisplaySetState,
   });
 
   final Mapping mapping;
   final FullMap map;
 
   /// Callback for updating the layout of the full map display.
-  final void Function(void Function()) setState;
+  final void Function(void Function()) mapDisplaySetState;
 
   @override
   ConsumerState<MappingDisplay> createState() => _MappingDisplayState();
@@ -43,7 +43,7 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
     ref.read(selectedMappingProvider.notifier).clear();
 
     // Update the full map display
-    widget.setState(() {
+    widget.mapDisplaySetState(() {
       // The fields must be updated using the [FullMap] interface.
       final map = widget.map;
       final mapping = widget.mapping;
@@ -179,7 +179,7 @@ class _MapDisplayState extends State<MapDisplay> {
                     key: UniqueKey(),
                     mapping: m,
                     map: widget.map,
-                    setState: setState,
+                    mapDisplaySetState: setState,
                   )),
             ])
         // Flatten this list of lists.
