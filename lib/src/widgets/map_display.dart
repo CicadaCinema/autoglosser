@@ -39,8 +39,9 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
   // text fields, typically by pressing the enter key.
   // Updates all the fields in the [Mapping].
   void _onSubmitted(String _) {
-    // Clear the selection
+    // Clear the selection and hide the text fields.
     ref.read(selectedMappingProvider.notifier).clear();
+    _textFieldsVisible = false;
 
     // Update the full map display, but only if the pronunciation has been modified.
     // The fields must be updated using the [FullMap] interface.
@@ -93,28 +94,15 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen for changes to the currently selected mapping.
-    // This is so that this mapping can hide its text fields when another one is selected.
-    // TODO: if increased rebuilds are not an issue, we can just use ref.watch, using it to set a local variable _textFieldsVisible inside this build method. The alternative we are using now is to ref.read to obtain the initial value, then ref.listen to call a custom function and decide manually to only rebuild when the selection status changes.
-    ref.listen<Mapping?>(selectedMappingProvider,
-        (Mapping? prev, Mapping? next) {
-      final previouslySelected = widget.mapping == prev;
-      final nowSelected = widget.mapping == next;
-      // Only rebuild this widget if the selected status of the mapping has changed.
-      if (previouslySelected != nowSelected) {
-        setState(() {
-          // Toggle selected status.
-          _textFieldsVisible = !_textFieldsVisible;
-        });
-      }
-    });
-
     return GestureDetector(
       onTap: () {
         // Only react to clicks if no mapping was selected previously.
-        // In this case, assign this mapping as selected.
+        // In this case, assign this mapping as selected and make the text fields visible.
         if (ref.read(selectedMappingProvider) == null) {
-          ref.read(selectedMappingProvider.notifier).set(widget.mapping);
+          setState(() {
+            ref.read(selectedMappingProvider.notifier).set(widget.mapping);
+            _textFieldsVisible = true;
+          });
         }
       },
       child: Row(children: [
