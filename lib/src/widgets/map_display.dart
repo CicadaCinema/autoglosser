@@ -111,12 +111,9 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
 
     return GestureDetector(
       onTap: () {
-        // If this mapping was already selected, clear the selection.
-        if (ref.read(selectedMappingProvider) == widget.mapping) {
-          ref.read(selectedMappingProvider.notifier).clear();
-        }
-        // Otherwise, update the currently-selected word.
-        else {
+        // Only react to clicks if no mapping was selected previously.
+        // In this case, assign this mapping as selected.
+        if (ref.read(selectedMappingProvider) == null) {
           ref.read(selectedMappingProvider.notifier).set(widget.mapping);
         }
       },
@@ -203,56 +200,67 @@ class _MapDisplayState extends State<MapDisplay> {
         children: [
           Consumer(
             builder: (context, ref, child) {
+              // True if there is some selected mapping.
+              final someMappingSelected =
+                  ref.watch(selectedMappingProvider) != null;
+
               return Row(
                 children: [
                   // NOTE: we have a very similar implemenation for saving and loading the FullText.
                   ElevatedButton(
-                    onPressed: () {
-                      save_string.save(
-                        content: jsonEncode(widget.map.toJson()),
-                        filename: 'my-map.agmap',
-                      );
-                    },
+                    onPressed: someMappingSelected
+                        ? null
+                        : () {
+                            save_string.save(
+                              content: jsonEncode(widget.map.toJson()),
+                              filename: 'my-map.agmap',
+                            );
+                          },
                     child: const Text('save'),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
-                    onPressed: () {
-                      ref.read(selectedMappingProvider.notifier).clear();
-                      FilePicker.platform
-                          .pickFiles(
-                            type: FileType.custom,
-                            allowedExtensions: ['agmap'],
-                          )
-                          .then(filePickerResultToString)
-                          .then(json.decode)
-                          .then((dynamic serialisedText) =>
-                              widget.replaceFullMap(
-                                  FullMap.fromJson(serialisedText)));
-                    },
+                    onPressed: someMappingSelected
+                        ? null
+                        : () {
+                            ref.read(selectedMappingProvider.notifier).clear();
+                            FilePicker.platform
+                                .pickFiles(
+                                  type: FileType.custom,
+                                  allowedExtensions: ['agmap'],
+                                )
+                                .then(filePickerResultToString)
+                                .then(json.decode)
+                                .then((dynamic serialisedText) =>
+                                    widget.replaceFullMap(
+                                        FullMap.fromJson(serialisedText)));
+                          },
                     child: const Text('load'),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
-                    onPressed: () {
-                      // Add a new mapping and set it as selected.
-                      final newMapping = Mapping(
-                          pronounciation: 'a', source: 'b', translation: ['c']);
-                      setState(() {
-                        widget.map.addMapping(
-                            mapping: newMapping, section: 'Default');
-                      });
-                      ref
-                          .read(selectedMappingProvider.notifier)
-                          .set(newMapping);
-                    },
+                    onPressed: someMappingSelected
+                        ? null
+                        : () {
+                            // Add a new mapping and set it as selected.
+                            final newMapping = Mapping(
+                                pronounciation: 'a',
+                                source: 'b',
+                                translation: ['c']);
+                            setState(() {
+                              widget.map.addMapping(
+                                  mapping: newMapping, section: 'Default');
+                            });
+                            ref
+                                .read(selectedMappingProvider.notifier)
+                                .set(newMapping);
+                          },
                     child: const Text('Add mapping to the general section'),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
-                    onPressed: ref.watch(selectedMappingProvider) == null
-                        ? null
-                        : () {
+                    onPressed: someMappingSelected
+                        ? () {
                             // Retrieve the mapping to remove and remove the selection.
                             final mappingToRemove =
                                 ref.read(selectedMappingProvider);
@@ -262,7 +270,8 @@ class _MapDisplayState extends State<MapDisplay> {
                             setState(() {
                               widget.map.clearMapping(mappingToRemove!);
                             });
-                          },
+                          }
+                        : null,
                     child: const Text('Remove selected mapping'),
                   ),
                 ],
