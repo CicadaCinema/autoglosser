@@ -231,7 +231,7 @@ class FullMap {
     required String newPronunciation,
   }) {
     // Update the pronunciation field.
-    mapping.pronounciation = newPronunciation;
+    mapping.pronounciation = applyToneMarks(newPronunciation);
 
     // Reposition the mapping in its linked list.
     // We know the linked list has at least one element, namely [mapping].
@@ -361,4 +361,50 @@ extension InsertMappingIntoLinkedList on LinkedList<Mapping> {
 enum SourceLanguage {
   chinese,
   alphabetic,
+}
+
+const _pinyinPronunciationMap = {
+  'a1': 'ā',
+  'a2': 'á',
+  'a3': 'ǎ',
+  'a4': 'à',
+  'A1': 'Ā',
+  'A2': 'Á',
+  'A3': 'Ǎ',
+  'A4': 'À',
+  'o1': 'ō',
+  'o2': 'ó',
+  'o3': 'ǒ',
+  'o4': 'ò',
+  'e1': 'ē',
+  'e2': 'é',
+  'e3': 'ě',
+  'e4': 'è',
+  'E1': 'Ē',
+  'E2': 'É',
+  'E3': 'Ě',
+  'E4': 'È',
+  'i1': 'ī',
+  'i2': 'í',
+  'i3': 'ǐ',
+  'i4': 'ì',
+  'u1': 'ū',
+  'u2': 'ú',
+  'u3': 'ǔ',
+  'u4': 'ù',
+  'v1': 'ǖ',
+  'v2': 'ǘ',
+  'v3': 'ǚ',
+  'v4': 'ǜ',
+};
+
+// TODO: ensure this function is as fast as can be, or else remove this TODO to indicate that performance is not important here.
+/// Applies tone marks according to the Pinyin lookup table.
+String applyToneMarks(String pronunciation) {
+  var result = pronunciation;
+  for (final conversionEntry in _pinyinPronunciationMap.entries) {
+    result = result.replaceAll(conversionEntry.key, conversionEntry.value);
+  }
+  // We deal with this final case manually at the end!
+  return result.replaceAll('v', 'ü');
 }
