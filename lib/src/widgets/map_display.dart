@@ -42,24 +42,33 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
     // Clear the selection
     ref.read(selectedMappingProvider.notifier).clear();
 
-    // Update the full map display
-    widget.mapDisplaySetState(() {
-      // The fields must be updated using the [FullMap] interface.
-      final map = widget.map;
-      final mapping = widget.mapping;
-      map.updatePronunciation(
-        mapping: mapping,
-        newPronunciation: _pronounciationController.text,
-      );
-      map.updateSource(
-        mapping: mapping,
-        newSource: _sourceController.text,
-      );
-      map.updateTranslation(
-        mapping: mapping,
-        newTranslation: _translationController.text.split(';'),
-      );
-    });
+    // Update the full map display, but only if the pronunciation has been modified.
+    // The fields must be updated using the [FullMap] interface.
+    final map = widget.map;
+    final mapping = widget.mapping;
+    final pronunciationModified =
+        mapping.pronounciation != _pronounciationController.text;
+    map.updatePronunciation(
+      mapping: mapping,
+      newPronunciation: _pronounciationController.text,
+    );
+    map.updateSource(
+      mapping: mapping,
+      newSource: _sourceController.text,
+    );
+    map.updateTranslation(
+      mapping: mapping,
+      newTranslation: _translationController.text.split(';'),
+    );
+
+    // Rebuild widgets.
+    if (pronunciationModified) {
+      // In this case, all the [MappingDisplay] widgets are rebuilt.
+      widget.mapDisplaySetState(() {});
+    } else {
+      // Otherwise, only this widget is rebuilt.
+      setState(() {});
+    }
   }
 
   @override
@@ -85,6 +94,7 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
   @override
   Widget build(BuildContext context) {
     // Listen for changes to the currently selected mapping.
+    // This is so that this mapping can hide its text fields when another one is selected.
     // TODO: if increased rebuilds are not an issue, we can just use ref.watch, using it to set a local variable _textFieldsVisible inside this build method. The alternative we are using now is to ref.read to obtain the initial value, then ref.listen to call a custom function and decide manually to only rebuild when the selection status changes.
     ref.listen<Mapping?>(selectedMappingProvider,
         (Mapping? prev, Mapping? next) {
