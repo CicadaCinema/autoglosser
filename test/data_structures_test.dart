@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:autoglosser/src/common.dart';
 import 'package:autoglosser/src/data_structures/data_structures.dart';
 import 'package:collection/collection.dart';
@@ -107,8 +109,8 @@ void main() {
       final a2 = Mapping(pronounciation: 'd', source: 'e', translation: ['f']);
       final b = Mapping(pronounciation: 'g', source: 'h', translation: ['i']);
 
-      originalMap.addMapping(mapping: a1, section: 'sectionA');
       originalMap.addMapping(mapping: a2, section: 'sectionA');
+      originalMap.addMapping(mapping: a1, section: 'sectionA');
       originalMap.addMapping(mapping: b, section: 'sectionB');
 
       final json = originalMap.toJson();
@@ -208,6 +210,184 @@ void main() {
       expect(
         (rare + clef).splitOnFirstRune(),
         equals((rare, clef)),
+      );
+    },
+  );
+
+  group(
+    'a Mapping should be able to be inserted into an already-sorted LinkedList<Mapping> object',
+    () {
+      late Mapping a;
+      late Mapping b;
+      late Mapping bOther;
+      late Mapping b_;
+      late Mapping c;
+      late Mapping d;
+      late Mapping d_;
+      late Mapping e;
+      late Mapping f;
+      late Mapping f_;
+      late Mapping g;
+      late LinkedList<Mapping> list;
+      late LinkedList<Mapping> listSingleElement;
+      late LinkedList<Mapping> listEmpty;
+      late Function eq;
+
+      setUp(() {
+        a = Mapping(pronounciation: 'a', source: '', translation: []);
+        b = Mapping(pronounciation: 'b', source: '', translation: []);
+        bOther = Mapping(pronounciation: 'b', source: '', translation: []);
+        b_ = Mapping(pronounciation: 'b', source: '', translation: []);
+        c = Mapping(pronounciation: 'c', source: '', translation: []);
+        d = Mapping(pronounciation: 'd', source: '', translation: []);
+        d_ = Mapping(pronounciation: 'd', source: '', translation: []);
+        e = Mapping(pronounciation: 'e', source: '', translation: []);
+        f = Mapping(pronounciation: 'f', source: '', translation: []);
+        f_ = Mapping(pronounciation: 'f', source: '', translation: []);
+        g = Mapping(pronounciation: 'g', source: '', translation: []);
+
+        list = LinkedList();
+        list.add(b);
+        list.add(d);
+        list.add(f);
+
+        listSingleElement = LinkedList();
+        listSingleElement.add(bOther);
+
+        listEmpty = LinkedList();
+
+        eq = const ListEquality().equals;
+      });
+
+      test(
+        'insert a',
+        () {
+          list.insertPreservingSort(a);
+          expect(
+            eq(list.map((m) => m.pronounciation).toList(),
+                ['a', 'b', 'd', 'f']),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'insert c',
+        () {
+          list.insertPreservingSort(c);
+          expect(
+            eq(list.map((m) => m.pronounciation).toList(),
+                ['b', 'c', 'd', 'f']),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'insert e',
+        () {
+          list.insertPreservingSort(e);
+          expect(
+            eq(list.map((m) => m.pronounciation).toList(),
+                ['b', 'd', 'e', 'f']),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'insert g',
+        () {
+          list.insertPreservingSort(g);
+          expect(
+            eq(list.map((m) => m.pronounciation).toList(),
+                ['b', 'd', 'f', 'g']),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'insert b_',
+        () {
+          list.insertPreservingSort(b_);
+          expect(
+            eq(list.map((m) => m.pronounciation).toList(),
+                ['b', 'b', 'd', 'f']),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'insert d_',
+        () {
+          list.insertPreservingSort(d_);
+          expect(
+            eq(list.map((m) => m.pronounciation).toList(),
+                ['b', 'd', 'd', 'f']),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'insert f_',
+        () {
+          list.insertPreservingSort(f_);
+          expect(
+            eq(list.map((m) => m.pronounciation).toList(),
+                ['b', 'd', 'f', 'f']),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'insert a into listSingleElement',
+        () {
+          listSingleElement.insertPreservingSort(a);
+          expect(
+            eq(listSingleElement.map((m) => m.pronounciation).toList(),
+                ['a', 'b']),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'insert b_ into listSingleElement',
+        () {
+          listSingleElement.insertPreservingSort(b_);
+          expect(
+            eq(listSingleElement.map((m) => m.pronounciation).toList(),
+                ['b', 'b']),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'insert c into listSingleElement',
+        () {
+          listSingleElement.insertPreservingSort(c);
+          expect(
+            eq(listSingleElement.map((m) => m.pronounciation).toList(),
+                ['b', 'c']),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'insert a into listEmpty',
+        () {
+          listEmpty.insertPreservingSort(a);
+          expect(
+            eq(listEmpty.map((m) => m.pronounciation).toList(), ['a']),
+            isTrue,
+          );
+        },
       );
     },
   );

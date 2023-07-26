@@ -24,5 +24,5 @@ Click on either 'windows_msix' to download the MSIX installer (recommended, supp
 - [x] adding glosses/translations to individual words in translation mode
 - [x] editing chunk translations
 - [x] adding words to a gloss dictionary
-- [ ] gloss dictionary remains sorted
+- [x] gloss dictionary remains sorted
 - [x] using the gloss dictionary to gloss a word

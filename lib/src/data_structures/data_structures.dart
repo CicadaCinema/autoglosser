@@ -143,6 +143,7 @@ class FullText {
 
 @JsonSerializable()
 final class Mapping extends LinkedListEntry<Mapping> {
+  // TODO: remove thees three setters (make them private instead), instead force the user to go through the [FullMap] interface.
   String pronounciation;
   String source;
   List<String> translation;
@@ -179,7 +180,10 @@ final class Mapping extends LinkedListEntry<Mapping> {
 )
 class FullMap {
   // TODO: protect against accidentally modifying this map.
-  /// Maps from the name of a section to a linked list of mappings in that section.
+  // TODO: use a SplayTreeSet rather than a LinkedList for improved performance.
+  // (see https://ece.uwaterloo.ca/~dwharder/aads/Abstract_data_types/Linear_ordering/Sorted_list/ )
+  /// Maps from the name of a section to a linked list of mappings in that section,
+  /// sorted by pronunciation.
   final Map<String, LinkedList<Mapping>> mappingSections;
 
   /// Maps from a source word to the list of mappings associated with that word, across all sections.
@@ -187,13 +191,13 @@ class FullMap {
 
   List<Mapping>? souceToMappings(String source) => _sourceToMappings[source];
 
-  /// Adds a mapping to the given section.
+  /// Adds a mapping at the beginning of the given section, possibly violating the sort order.
   void addMapping({required Mapping mapping, required String section}) {
     // Update mappingSections.
     if (!mappingSections.containsKey(section)) {
       mappingSections[section] = LinkedList();
     }
-    mappingSections[section]!.add(mapping);
+    mappingSections[section]!.addFirst(mapping);
 
     // Update _sourceToMappings.
     if (!_sourceToMappings.containsKey(mapping.source)) {
@@ -211,8 +215,35 @@ class FullMap {
     mapping.unlink();
   }
 
-  /// Updates the source text for a mapping. The other fields can be modified in-place without going through this [FullMap] interface.
-  void updateSource({required Mapping mapping, required String newSource}) {
+  /// Updates the pronunciation text for a mapping and position it in the
+  /// correct place in its [LinkedList] to retain the sort order.
+  /// [mapping] must be a member of a linked list.
+  void updatePronunciation({
+    required Mapping mapping,
+    required String newPronunciation,
+  }) {
+    // Update the pronunciation field.
+    mapping.pronounciation = newPronunciation;
+
+    // Reposition the mapping in its linked list.
+    // We know the linked list has at least one element, namely [mapping].
+    // If it is the only element, we don't need to do anything.
+    if (mapping.list!.first.next == null) {
+      return;
+    }
+
+    // There are at least two elements in the linked list.
+    // Unlink [mapping] and insert it again into the linked list, preserving the sort order.
+    final list = mapping.list!;
+    mapping.unlink();
+    list.insertPreservingSort(mapping);
+  }
+
+  /// Updates the source text for a mapping.
+  void updateSource({
+    required Mapping mapping,
+    required String newSource,
+  }) {
     // Update _sourceToMappings.
     _sourceToMappings[mapping.source]!.remove(mapping);
     if (!_sourceToMappings.containsKey(newSource)) {
@@ -224,6 +255,14 @@ class FullMap {
     mapping.source = newSource;
   }
 
+  /// Updates the translation for a mapping.
+  void updateTranslation({
+    required Mapping mapping,
+    required List<String> newTranslation,
+  }) {
+    mapping.translation = newTranslation;
+  }
+
   // Initialise map as empty.
   FullMap()
       : mappingSections = {},
@@ -232,8 +271,29 @@ class FullMap {
   FullMap._allFields({
     required this.mappingSections,
   }) : _sourceToMappings = {} {
-    // Populate FullMap._sourceToMappings using values from
-    // FullMap.mappingSections.
+    // Ensure that the values of mappingSections are sorted linked lists.
+    // TODO: remove this code soon and document the change, after any savefiles
+    // have been migrated (overwritten with a version where this field is sorted).
+    keyOfMapping(Mapping mapping) => mapping.pronounciation;
+    for (final section in mappingSections.values) {
+      if (section.isSortedBy(keyOfMapping)) {
+        // If this section is sorted, we don't have to do anything.
+        continue;
+      }
+
+      // Store the mappings in an array and unlink them from their linked list.
+      final sectionList = section.toList();
+      for (final mapping in sectionList) {
+        mapping.unlink();
+      }
+
+      // Sort the array, then add back the mapping elements to the linked list.
+      sectionList.sortBy(keyOfMapping);
+      assert(section.isEmpty);
+      section.addAll(sectionList);
+    }
+
+    // Populate _sourceToMappings using values from mappingSections.
     for (final section in mappingSections.values) {
       for (final mapping in section) {
         if (!_sourceToMappings.containsKey(mapping.source)) {
@@ -248,6 +308,46 @@ class FullMap {
       _$FullMapFromJson(json);
 
   Map<String, dynamic> toJson() => _$FullMapToJson(this);
+}
+
+extension InsertMappingIntoLinkedList on LinkedList<Mapping> {
+  /// Assuming that this [LinkedList] is sorted by applying the default compare
+  /// function to [Mapping.pronounciation], insert [mapping] into the linked
+  /// list, preserving the sort order. [mapping] must not already be in any
+  /// linked list.
+  void insertPreservingSort(Mapping mapping) {
+    // If the list is empty to begin with, this operation is trivial.
+    if (isEmpty) {
+      add(mapping);
+      return;
+    }
+
+    // A special case is when the new element must be inserted at the beginning
+    // of the list.
+    if (mapping.pronounciation.compareTo(first.pronounciation) <= 0) {
+      // In this case, mapping is ordered before first, or they are equivalent.
+      first.insertBefore(mapping);
+      return;
+    }
+
+    // Now we know that we can insert [mapping] *after some element of the linked list*.
+    // We also know that [mapping] must be inserted after [first].
+
+    var other = first;
+    while (other.next != null &&
+        mapping.pronounciation.compareTo(other.next!.pronounciation) > 0) {
+      // Now we know that there is yet another element in the linked list after
+      // other. We also know that [mapping] must be inserted after [other.next],
+      // so it is certainly not inserted immediately after [other].
+      // Move one element along.
+      other = other.next!;
+    }
+
+    // At this point,
+    // - either [other.next] == null, in which case [mapping] must be the last element in the linked list
+    // - or [mapping] must be inserted before [other.next] (we already know it must be inserted after [other])
+    other.insertAfter(mapping);
+  }
 }
 
 enum SourceLanguage {

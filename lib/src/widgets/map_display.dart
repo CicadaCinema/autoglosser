@@ -12,10 +12,18 @@ import 'common.dart';
 
 /// Displays a mapping, allowing it to be edited while selected.
 class MappingDisplay extends ConsumerStatefulWidget {
-  const MappingDisplay({super.key, required this.mapping, required this.map});
+  const MappingDisplay({
+    super.key,
+    required this.mapping,
+    required this.map,
+    required this.setState,
+  });
 
   final Mapping mapping;
   final FullMap map;
+
+  /// Callback for updating the layout of the full map display.
+  final void Function(void Function()) setState;
 
   @override
   ConsumerState<MappingDisplay> createState() => _MappingDisplayState();
@@ -27,6 +35,33 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
   final _sourceController = TextEditingController();
   final _translationController = TextEditingController();
 
+  // Called when the user indicates they have finished editing one of the three
+  // text fields, typically by pressing the enter key.
+  // Updates all the fields in the [Mapping].
+  void _onSubmitted(String _) {
+    // Clear the selection
+    ref.read(selectedMappingProvider.notifier).clear();
+
+    // Update the full map display
+    widget.setState(() {
+      // The fields must be updated using the [FullMap] interface.
+      final map = widget.map;
+      final mapping = widget.mapping;
+      map.updatePronunciation(
+        mapping: mapping,
+        newPronunciation: _pronounciationController.text,
+      );
+      map.updateSource(
+        mapping: mapping,
+        newSource: _sourceController.text,
+      );
+      map.updateTranslation(
+        mapping: mapping,
+        newTranslation: _translationController.text.split(';'),
+      );
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -34,19 +69,6 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
     _pronounciationController.text = widget.mapping.pronounciation;
     _sourceController.text = widget.mapping.source;
     _translationController.text = widget.mapping.translation.join(';');
-
-    // Add listeners to update these strings whenever the text field values change.
-    _pronounciationController.addListener(() {
-      widget.mapping.pronounciation = _pronounciationController.text;
-    });
-    _sourceController.addListener(() {
-      // The source must be updated using the [FullMap] interface.
-      widget.map.updateSource(
-          mapping: widget.mapping, newSource: _sourceController.text);
-    });
-    _translationController.addListener(() {
-      widget.mapping.translation = _translationController.text.split(';');
-    });
 
     // Sometimes this mapping may be selected upon creation.
     _textFieldsVisible = ref.read(selectedMappingProvider) == widget.mapping;
@@ -94,6 +116,7 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
           fit: FlexFit.tight,
           child: _textFieldsVisible
               ? TextField(
+                  onSubmitted: _onSubmitted,
                   controller: _pronounciationController,
                   decoration: compactDecoration,
                 )
@@ -104,6 +127,7 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
           fit: FlexFit.tight,
           child: _textFieldsVisible
               ? TextField(
+                  onSubmitted: _onSubmitted,
                   controller: _sourceController,
                   decoration: compactDecoration,
                 )
@@ -114,6 +138,7 @@ class _MappingDisplayState extends ConsumerState<MappingDisplay> {
           fit: FlexFit.tight,
           child: _textFieldsVisible
               ? TextField(
+                  onSubmitted: _onSubmitted,
                   controller: _translationController,
                   decoration: compactDecoration,
                 )
@@ -151,7 +176,11 @@ class _MapDisplayState extends State<MapDisplay> {
               ),
               // The mappings in this section.
               ...s.value.map((m) => MappingDisplay(
-                  key: UniqueKey(), mapping: m, map: widget.map)),
+                    key: UniqueKey(),
+                    mapping: m,
+                    map: widget.map,
+                    setState: setState,
+                  )),
             ])
         // Flatten this list of lists.
         .expand((i) => i)
