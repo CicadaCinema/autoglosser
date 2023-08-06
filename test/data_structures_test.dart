@@ -391,4 +391,111 @@ void main() {
       );
     },
   );
+
+  test(
+    'Mappings should be sorted using our custom mapping. This does not test words which use letters outside the mapping.',
+    () {
+      // https://stackoverflow.com/a/56118115/14464173
+      int compareGroundTruthStackoverflow(String a, String b) {
+        late int charAint;
+        late int charBint;
+        int min = a.length;
+        if (b.length < a.length) min = b.length;
+        for (int i = 0; i < min; ++i) {
+          String charA = a[i];
+          String charB = b[i];
+          if (characterMap.containsKey(charA)) {
+            charAint = characterMap[charA]!;
+          }
+          if (characterMap.containsKey(charB)) {
+            charBint = characterMap[charB]!;
+          }
+          if (charAint > charBint) {
+            return 1;
+          } else if (charAint < charBint) {
+            return -1;
+          }
+        }
+        if (a.length < b.length) {
+          return -1;
+        } else if (a.length > b.length) {
+          return 1;
+        }
+        return 0;
+      }
+
+      // The letters available to use.
+      final letters = characterMap.keys.toList();
+
+      // This list is populated with all zero-, one- and two-letter words.
+      final testWords = <String>[''];
+      for (final letter1 in letters) {
+        testWords.add(letter1);
+        testWords.addAll(letters.map((letter2) => letter1 + letter2));
+      }
+
+      // Generate a mapping from each word.
+      final testMappings = testWords.map((w) => Mapping(
+            source: '',
+            translation: [''],
+            pronounciation: w,
+          ));
+
+      // Ensure our result matches the result of the ground truth sorting function.
+      for (final mapping1 in testMappings) {
+        for (final mapping2 in testMappings) {
+          expect(
+            mapping1.compareTo(mapping2).sign,
+            equals(compareGroundTruthStackoverflow(
+              mapping1.pronounciation,
+              mapping2.pronounciation,
+            ).sign),
+          );
+        }
+      }
+
+      // Add some words from outside the mapping.
+      testWords.addAll([
+        '!',
+        '!!',
+        '!*',
+        '!+',
+        '!-',
+        '*',
+        '*!',
+        '**',
+        '*+',
+        '*-',
+        '+',
+        '+!',
+        '+*',
+        '++',
+        '+-',
+        '-',
+        '-!',
+        '-*',
+        '-+',
+        '--',
+      ]);
+
+      // Reverse the mappings, then sort them.
+      final reversedMappings = testWords.reversed
+          .map((w) => Mapping(
+                source: '',
+                translation: [''],
+                pronounciation: w,
+              ))
+          .toList();
+      reversedMappings.sort();
+
+      // We expect to get back the list of words in sorted order (the order in which the list of words was created).
+      expect(
+        const ListEquality().equals(
+          reversedMappings.map((m) => m.pronounciation).toList(),
+          testWords,
+        ),
+        isTrue,
+      );
+    },
+  );
 }

@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:autoglosser/src/linkedlist_mapping_converter.dart';
 import 'package:collection/collection.dart';
@@ -13,6 +14,95 @@ import '../break_kind_converter.dart';
 import '../linkedlist_word_converter.dart';
 
 part 'data_structures.g.dart';
+
+const characterMap = {
+  'A': 1,
+  'a': 2,
+  'Ā': 3,
+  'ā': 4,
+  'Á': 5,
+  'á': 6,
+  'Ǎ': 7,
+  'ǎ': 8,
+  'À': 9,
+  'à': 10,
+  'B': 11,
+  'b': 12,
+  'C': 13,
+  'c': 14,
+  'D': 15,
+  'd': 16,
+  'E': 17,
+  'e': 18,
+  'Ē': 19,
+  'ē': 20,
+  'É': 21,
+  'é': 22,
+  'Ě': 23,
+  'ě': 24,
+  'È': 25,
+  'è': 26,
+  'F': 27,
+  'f': 28,
+  'G': 29,
+  'g': 30,
+  'H': 31,
+  'h': 32,
+  'I': 33,
+  'i': 34,
+  'ī': 35,
+  'í': 36,
+  'ǐ': 37,
+  'ì': 38,
+  'J': 39,
+  'j': 40,
+  'K': 41,
+  'k': 42,
+  'L': 43,
+  'l': 44,
+  'M': 45,
+  'm': 46,
+  'N': 47,
+  'n': 48,
+  'O': 49,
+  'o': 50,
+  'ō': 51,
+  'ó': 52,
+  'ǒ': 53,
+  'ò': 54,
+  'P': 55,
+  'p': 56,
+  'Q': 57,
+  'q': 58,
+  'R': 59,
+  'r': 60,
+  'S': 61,
+  's': 62,
+  'T': 63,
+  't': 64,
+  'U': 65,
+  'u': 66,
+  'ū': 67,
+  'ú': 68,
+  'ǔ': 69,
+  'ù': 70,
+  'Ü': 71,
+  'ü': 72,
+  'ǖ': 73,
+  'ǘ': 74,
+  'ǚ': 75,
+  'ǜ': 76,
+  'V': 77,
+  'v': 78,
+  'W': 79,
+  'w': 80,
+  'X': 81,
+  'x': 82,
+  'Y': 83,
+  'y': 84,
+  'Z': 85,
+  'z': 86,
+};
 
 // TODO: get rid of this and use the enum below instead, like in the settings page
 const breakKinds = [
@@ -142,7 +232,8 @@ class FullText {
 }
 
 @JsonSerializable()
-final class Mapping extends LinkedListEntry<Mapping> {
+final class Mapping extends LinkedListEntry<Mapping>
+    implements Comparable<Mapping> {
   // TODO: remove thees three setters (make them private instead), instead force the user to go through the [FullMap] interface.
   String pronounciation;
   String source;
@@ -172,6 +263,42 @@ final class Mapping extends LinkedListEntry<Mapping> {
       _$MappingFromJson(json);
 
   Map<String, dynamic> toJson() => _$MappingToJson(this);
+
+  @override
+  int compareTo(Mapping other) {
+    // Iterate over the common indexes in the two pronunciation strings.
+    for (int i = 0;
+        i < min(pronounciation.length, other.pronounciation.length);
+        i++) {
+      final charComparison = switch ((
+        characterMap[pronounciation[i]],
+        characterMap[other.pronounciation[i]],
+      )) {
+        // If both characters are in the map, compare them using their inexes.
+        (int thisCharIndex, int otherCharIndex) =>
+          thisCharIndex.compareTo(otherCharIndex),
+        // If one character is not in the map, it should be ordered last.
+        // Here, `this` should come first.
+        (int _, null) => -1,
+        // Here, `other` should come first.
+        (null, int _) => 1,
+        // If neither character is in the map, then use the existing [String] logic for this.
+        (null, null) => pronounciation[i].compareTo(other.pronounciation[i]),
+      };
+
+      // In this case, one character clearly comes before the other.
+      // Otherwise, continue the loop.
+      if (charComparison != 0) {
+        return charComparison;
+      }
+    }
+
+    // If we have reached this point, it means that one pronunciation is a substring of the other.
+    // The shorter string lexicographically precedes the longer string.
+    // For example, if `this` is longer than `other`, then a positive integer will be returned,
+    // since `other` is the shorter string and `this` is ordered after `other`.
+    return pronounciation.length - other.pronounciation.length;
+  }
 }
 
 @JsonSerializable(
@@ -284,7 +411,7 @@ class FullMap {
     // have been migrated (overwritten with a version where this field is sorted).
     keyOfMapping(Mapping mapping) => mapping.pronounciation;
     for (final section in mappingSections.values) {
-      if (section.isSortedBy(keyOfMapping)) {
+      if (section.isSorted((a, b) => a.compareTo(b))) {
         // If this section is sorted, we don't have to do anything.
         continue;
       }
@@ -296,7 +423,7 @@ class FullMap {
       }
 
       // Sort the array, then add back the mapping elements to the linked list.
-      sectionList.sortBy(keyOfMapping);
+      sectionList.sort();
       assert(section.isEmpty);
       section.addAll(sectionList);
     }
@@ -319,10 +446,9 @@ class FullMap {
 }
 
 extension InsertMappingIntoLinkedList on LinkedList<Mapping> {
-  /// Assuming that this [LinkedList] is sorted by applying the default compare
-  /// function to [Mapping.pronounciation], insert [mapping] into the linked
-  /// list, preserving the sort order. [mapping] must not already be in any
-  /// linked list.
+  /// Assuming that this [LinkedList] is sorted, insert [mapping] into the
+  /// linked list, preserving the sort order. [mapping] must not already be in
+  /// any linked list.
   void insertPreservingSort(Mapping mapping) {
     // If the list is empty to begin with, this operation is trivial.
     if (isEmpty) {
@@ -332,7 +458,7 @@ extension InsertMappingIntoLinkedList on LinkedList<Mapping> {
 
     // A special case is when the new element must be inserted at the beginning
     // of the list.
-    if (mapping.pronounciation.compareTo(first.pronounciation) <= 0) {
+    if (mapping.compareTo(first) <= 0) {
       // In this case, mapping is ordered before first, or they are equivalent.
       first.insertBefore(mapping);
       return;
@@ -342,8 +468,7 @@ extension InsertMappingIntoLinkedList on LinkedList<Mapping> {
     // We also know that [mapping] must be inserted after [first].
 
     var other = first;
-    while (other.next != null &&
-        mapping.pronounciation.compareTo(other.next!.pronounciation) > 0) {
+    while (other.next != null && mapping.compareTo(other.next!) > 0) {
       // Now we know that there is yet another element in the linked list after
       // other. We also know that [mapping] must be inserted after [other.next],
       // so it is certainly not inserted immediately after [other].
