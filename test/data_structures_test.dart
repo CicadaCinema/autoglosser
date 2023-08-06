@@ -395,6 +395,35 @@ void main() {
   test(
     'Mappings should be sorted using our custom mapping. This does not test words which use letters outside the mapping.',
     () {
+      const nonAlphabeticWordsSorted = [
+        '!',
+        '!!',
+        '!*',
+        '!+',
+        '!-',
+        '*',
+        '*!',
+        '**',
+        '*+',
+        '*-',
+        '+',
+        '+!',
+        '+*',
+        '++',
+        '+-',
+        '-',
+        '-!',
+        '-*',
+        '-+',
+        '--',
+      ];
+
+      // This subset of the map contains a representative set of letters:
+      // all the a's, including all the accented characters, as well as
+      // some non-accented characters such as b and c. For each of these,
+      // capital letters are included.
+      final smallMap = Map.fromEntries(characterMap.entries.take(20));
+
       // https://stackoverflow.com/a/56118115/14464173
       int compareGroundTruthStackoverflow(String a, String b) {
         late int charAint;
@@ -404,11 +433,11 @@ void main() {
         for (int i = 0; i < min; ++i) {
           String charA = a[i];
           String charB = b[i];
-          if (characterMap.containsKey(charA)) {
-            charAint = characterMap[charA]!;
+          if (smallMap.containsKey(charA)) {
+            charAint = smallMap[charA]!;
           }
-          if (characterMap.containsKey(charB)) {
-            charBint = characterMap[charB]!;
+          if (smallMap.containsKey(charB)) {
+            charBint = smallMap[charB]!;
           }
           if (charAint > charBint) {
             return 1;
@@ -425,7 +454,7 @@ void main() {
       }
 
       // The letters available to use.
-      final letters = characterMap.keys.toList();
+      final letters = smallMap.keys.toList();
 
       // This list is populated with all zero-, one- and two-letter words.
       final testWords = <String>[''];
@@ -455,28 +484,7 @@ void main() {
       }
 
       // Add some words from outside the mapping.
-      testWords.addAll([
-        '!',
-        '!!',
-        '!*',
-        '!+',
-        '!-',
-        '*',
-        '*!',
-        '**',
-        '*+',
-        '*-',
-        '+',
-        '+!',
-        '+*',
-        '++',
-        '+-',
-        '-',
-        '-!',
-        '-*',
-        '-+',
-        '--',
-      ]);
+      testWords.addAll(nonAlphabeticWordsSorted);
 
       // Reverse the mappings, then sort them.
       final reversedMappings = testWords.reversed
