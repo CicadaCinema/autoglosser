@@ -191,7 +191,7 @@ class FullMap {
 
   List<Mapping>? souceToMappings(String source) => _sourceToMappings[source];
 
-  /// Adds a mapping at the beginning of the given section, possibly violating the sort order.
+  /// Adds a mapping to the given section, maintaining the sort order.
   void addMapping({required Mapping mapping, required String section}) {
     // Update mappingSections.
     if (!mappingSections.containsKey(section)) {
