@@ -333,11 +333,63 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
           child: const Text('Skip word'),
           onPressed: () {
             // Skip this word and move onto the next.
-            final selectedWord = ref.read(selectedWordProvider);
-            ref.read(selectedWordProvider.notifier).set(selectedWord!.next!);
+            final selectedWord = ref.read(selectedWordProvider)!;
+            ref.read(selectedWordProvider.notifier).set(selectedWord.next!);
           },
         ),
       ]);
+      // [canAutogloss] is true, so ref.watch(selectedWordProvider)!=null is also true.
+      autoglossingButtons.addAll(
+        switch (widget.map
+            .mappingCountWithSource(ref.watch(selectedWordProvider)!.source)) {
+          // There are no existing mappings with this source, so we offer to create one.
+          0 => [
+              const SizedBox(height: 12),
+              ElevatedButton(
+                child: const Text('Add word to map'),
+                onPressed: () {
+                  final selectedWord = ref.read(selectedWordProvider)!;
+                  // Add the mapping.
+                  widget.map.addMapping(
+                    mapping: Mapping(
+                      pronounciation: selectedWord.pronounciation,
+                      source: selectedWord.source,
+                      translation: [selectedWord.gloss],
+                    ),
+                    section: 'Default',
+                  );
+                  // Move onto the next word.
+                  ref
+                      .read(selectedWordProvider.notifier)
+                      .set(selectedWord.next!);
+                },
+              ),
+            ],
+          // There is exactly one mapping with this source, so we offer to add to its translation,
+          // assuming that the pronunciations of the selected word and the single mapping match.
+          1 => [
+              const SizedBox(height: 12),
+              ElevatedButton(
+                child: const Text('Add translation to map'),
+                onPressed: () {
+                  final selectedWord = ref.read(selectedWordProvider)!;
+                  final singleMapping =
+                      widget.map.souceToMappings(selectedWord.source)!.single;
+                  // Update the translation of this mapping.
+                  widget.map.addToTranslation(
+                    mapping: singleMapping,
+                    translation: selectedWord.gloss,
+                  );
+                  // Move onto the next word.
+                  ref
+                      .read(selectedWordProvider.notifier)
+                      .set(selectedWord.next!);
+                },
+              ),
+            ],
+          _ => [],
+        },
+      );
       autoglossingButtons.addAll(glossWidgets);
     }
 

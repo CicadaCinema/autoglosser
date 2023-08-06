@@ -237,6 +237,7 @@ final class Mapping extends LinkedListEntry<Mapping>
   // TODO: remove thees three setters (make them private instead), instead force the user to go through the [FullMap] interface.
   String pronounciation;
   String source;
+  // TODO: make this a [Set].
   List<String> translation;
 
   Mapping({
@@ -318,6 +319,16 @@ class FullMap {
 
   List<Mapping>? souceToMappings(String source) => _sourceToMappings[source];
 
+  /// Returns the number of mappings stored with this source word.
+  int mappingCountWithSource(String source) {
+    final mappings = _sourceToMappings[source];
+    if (mappings == null) {
+      return 0;
+    } else {
+      return mappings.length;
+    }
+  }
+
   /// Adds a mapping to the given section, maintaining the sort order.
   void addMapping({required Mapping mapping, required String section}) {
     // Update mappingSections.
@@ -353,6 +364,7 @@ class FullMap {
   /// Updates the pronunciation text for a mapping and position it in the
   /// correct place in its [LinkedList] to retain the sort order.
   /// [mapping] must be a member of a linked list.
+  // TODO: consider renaming the FullMap.update*() methods to FullMap.replace*().
   void updatePronunciation({
     required Mapping mapping,
     required String newPronunciation,
@@ -396,6 +408,18 @@ class FullMap {
     required List<String> newTranslation,
   }) {
     mapping.translation = newTranslation;
+  }
+
+  /// Adds a translation to a mapping.
+  /// If the translation is already present, doesn't do anything.
+  void addToTranslation({
+    required Mapping mapping,
+    required String translation,
+  }) {
+    if (mapping.translation.contains(translation)) {
+      return;
+    }
+    mapping.translation.add(translation);
   }
 
   // Initialise map as empty.
