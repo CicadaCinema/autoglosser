@@ -409,7 +409,6 @@ class FullMap {
     // Ensure that the values of mappingSections are sorted linked lists.
     // TODO: remove this code soon and document the change, after any savefiles
     // have been migrated (overwritten with a version where this field is sorted).
-    keyOfMapping(Mapping mapping) => mapping.pronounciation;
     for (final section in mappingSections.values) {
       if (section.isSorted((a, b) => a.compareTo(b))) {
         // If this section is sorted, we don't have to do anything.
