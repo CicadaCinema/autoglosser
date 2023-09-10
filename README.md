@@ -26,6 +26,10 @@ Click on either 'windows_msix' to download the MSIX installer (recommended, supp
 - When saving an `.agtext` or an `.agmap`, you cannot overwrite files. Autoglosser will display no error, but the old file will not be overwritten and the new file will not be saved anywhere.
 - In Map mode, press enter to save the modification you have made to a mapping.
 
+## Compiling the exported `.tex` file
+
+Use the XeLaTeX compiler. You must also have the xeCJK package installed.
+
 ## Feature list
 
 - [x] saving/loading translations as JSON

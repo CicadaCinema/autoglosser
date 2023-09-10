@@ -124,7 +124,9 @@ enum BreakKinds {
 /// An instance of one of: [NoBreak], [LineBreak], [ChunkBreak] or [PageBreak].
 sealed class BreakKind {}
 
-// TODO: Can these classes all extend one another? Will this be useful?
+// TODO: Can these classes all extend one another?
+// This may make the method FullText.toTex() slightly cleaner.
+// Will this be useful anywhere else?
 class NoBreak implements BreakKind {}
 
 class LineBreak implements BreakKind {}
