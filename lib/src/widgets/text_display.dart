@@ -84,7 +84,7 @@ class _WordDisplayState extends ConsumerState<WordDisplay> {
       child: _textFieldsVisible
           ? Column(
               children: [
-                Text(widget.word.source),
+                SelectableText(widget.word.source),
                 SizedBox(
                   width: 50,
                   child: TextField(
