@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:autoglosser/src/data_structures/tex_export.dart';
 import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -558,44 +559,59 @@ class _ButtonSidebarState extends ConsumerState<ButtonSidebar> {
       ],
     );
 
-    final importTextButton = ElevatedButton(
-      onPressed: () {
-        ref.read(selectedWordProvider.notifier).clear();
-        ref.read(selectedChunkTranslationProvider.notifier).clear();
-        FilePicker.platform
-            .pickFiles(
-              type: FileType.custom,
-              allowedExtensions: ['txt'],
-            )
-            .then(filePickerResultToString)
-            .then((String sourceTextString) {
-              // Try to clean up the input.
-              sourceTextString = sourceTextString
-                  // Remove whitespace characters (see the docs for a full list) at the beginning and end of the string.
-                  .trim()
-                  // Remove carriage returns in case we are on Windows.
-                  .replaceAll('\r', '')
-                  // Remove tab characters.
-                  .replaceAll('\t', '')
-                  // Shrink any repeating sequences of newline characters/spaces to just one newline/space each.
-                  .replaceAll(RegExp(r'\n+'), '\n')
-                  .replaceAll(RegExp(r' +'), ' ');
+    final importExportButtons = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            ref.read(selectedWordProvider.notifier).clear();
+            ref.read(selectedChunkTranslationProvider.notifier).clear();
+            FilePicker.platform
+                .pickFiles(
+                  type: FileType.custom,
+                  allowedExtensions: ['txt'],
+                )
+                .then(filePickerResultToString)
+                .then((String sourceTextString) {
+                  // Try to clean up the input.
+                  sourceTextString = sourceTextString
+                      // Remove whitespace characters (see the docs for a full list) at the beginning and end of the string.
+                      .trim()
+                      // Remove carriage returns in case we are on Windows.
+                      .replaceAll('\r', '')
+                      // Remove tab characters.
+                      .replaceAll('\t', '')
+                      // Shrink any repeating sequences of newline characters/spaces to just one newline/space each.
+                      .replaceAll(RegExp(r'\n+'), '\n')
+                      .replaceAll(RegExp(r' +'), ' ');
 
-              final fullText = FullText.fromString(
-                source: sourceTextString,
-                sourceLanguage: ref.read(selectedLanguageProvider),
-              );
-              widget.replaceFullText(fullText);
-            });
-      },
-      child: const Text('import source text'),
+                  final fullText = FullText.fromString(
+                    source: sourceTextString,
+                    sourceLanguage: ref.read(selectedLanguageProvider),
+                  );
+                  widget.replaceFullText(fullText);
+                });
+          },
+          child: const Text('import source text'),
+        ),
+        const SizedBox(width: 12),
+        ElevatedButton(
+          onPressed: () {
+            save_string.save(
+              content: widget.text.toTex(),
+              filename: 'my-text.tex',
+            );
+          },
+          child: const Text('export .tex'),
+        ),
+      ],
     );
 
     return SizedBox(
       width: 300,
       child: Column(
         children: [
-          importTextButton,
+          importExportButtons,
           const SizedBox(height: 12),
           saveLoadButtons,
           const Divider(),
